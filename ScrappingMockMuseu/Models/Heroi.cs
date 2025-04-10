@@ -13,6 +13,6 @@
         public List<string> InstagramIframes { get; set; } = new();
         public List<string> YoutubeIframes { get; set; } = new();
 
-        public List<(string Url, string Credito)> Imagens { get; set; } = new();
+        public List<string> Imagens { get; set; } = new();
     }
 }

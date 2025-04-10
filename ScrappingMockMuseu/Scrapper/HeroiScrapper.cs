@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using ScrappingMockMuseu.Models;
 using System.Text.Json;
 
@@ -73,21 +74,27 @@ namespace ScrappingMockMuseu.Scrapper
 
                 // Carrossel de imagens
                 // Carrossel de imagens
-                var imagens = _driver.FindElements(By.CssSelector("#gallery-1 div div dl"));
 
-                foreach (var dl in imagens)
+                var imagemElements = _driver.FindElements(By.CssSelector("#gallery-1 > div > div > dl > dt > a > img"));
+                
+                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+
+                foreach (var imgElement in imagemElements)
                 {
                     try
                     {
-                        // Captura o HREF da imagem (link completo)
-                        var src = dl.FindElement(By.CssSelector("dt a")).GetAttribute("href");
+                        // Capture the 'src' attribute (the image link)
+                        var src = imgElement.GetAttribute("src");
 
-                        // Captura o crédito, se existir
-                        var credito = dl.FindElements(By.CssSelector("dd.wp-caption-text")).FirstOrDefault()?.Text ?? "";
+                        // Capture the credit, if available (if there's any caption text near the image)
+                        var credito = imgElement.FindElements(By.XPath("following-sibling::figcaption")).FirstOrDefault()?.Text ?? "";
 
-                        heroi.Imagens.Add((src, credito));
+                        heroi.Imagens.Add(src);
                     }
-                    catch { continue; }
+                    catch
+                    {
+                        continue;
+                    }
                 }
 
             }
