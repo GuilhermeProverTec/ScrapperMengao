@@ -45,56 +45,182 @@ namespace ScrappingMockMuseu.Scrapper
 
         private Heroi ObterDadosHeroi(string url)
         {
+            // Increase page load timeout (e.g., 3 minutes)
+            _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
+
+            // Increase asynchronous JavaScript timeout (e.g., 2 minutes)
+            _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
+
             _driver.Navigate().GoToUrl(url);
             var heroi = new Heroi();
 
             try
             {
-                heroi.Apelido = _driver.FindElement(By.CssSelector("div.heroBox > h1")).Text;
-                var paragrafos = _driver.FindElements(By.CssSelector("div.heroBox > div.heroContent > p"));
+                heroi.Apelido = _driver.FindElement(By.CssSelector("div.heroBox h1")).Text;
+                var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent > p"));
+                string lastLabel = null;
 
-                if (paragrafos.Count > 0) heroi.NomeCompleto = paragrafos[0].Text.Split('\n').LastOrDefault();
-                if (paragrafos.Count > 1) heroi.DataNascimento = paragrafos[1].Text.Split('\n').LastOrDefault();
-                if (paragrafos.Count > 2) heroi.DataFalecimento = paragrafos[2].Text.Split('\n').LastOrDefault();
-                if (paragrafos.Count > 3) heroi.LocalNascimento = paragrafos[3].Text.Split('\n').LastOrDefault();
-                if (paragrafos.Count > 4) heroi.AreaAtuacao = paragrafos[4].Text.Split('\n').LastOrDefault();
-
-                // Textos
-                var textos = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt h1, div.infoBox.fullWidth.stdCnt p"));
-                foreach (var texto in textos)
-                    heroi.Textos.Add(texto.Text.Trim());
-
-                // Instagram
-                var instagrams = _driver.FindElements(By.CssSelector("iframe.instagram-media"));
-                heroi.InstagramIframes = instagrams.Select(x => x.GetAttribute("src")).ToList();
-
-                // YouTube
-                var iframesYoutube = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt iframe"));
-                heroi.YoutubeIframes = iframesYoutube.Select(x => x.GetAttribute("src")).ToList();
-
-                // Carrossel de imagens
-                // Carrossel de imagens
-
-                var imagemElements = _driver.FindElements(By.CssSelector("#gallery-1 > div > div > dl > dt > a > img"));
-                
-                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-
-                foreach (var imgElement in imagemElements)
+                if (paragrafos.Count > 3)
                 {
-                    try
+                    foreach (var p in paragrafos)
                     {
-                        // Capture the 'src' attribute (the image link)
-                        var src = imgElement.GetAttribute("src");
+                        string label = null;
+                        string value = null;
 
-                        // Capture the credit, if available (if there's any caption text near the image)
-                        var credito = imgElement.FindElements(By.XPath("following-sibling::figcaption")).FirstOrDefault()?.Text ?? "";
+                        try
+                        {
+                            var labelElements = p.FindElements(By.CssSelector("strong, b"));
 
-                        heroi.Imagens.Add(src);
+                            // Pick the first label element that has text
+                            var labelElement = labelElements.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e.Text));
+
+                            if (labelElement != null)
+                            {
+                                label = labelElement.Text.Trim().ToLower();
+                                value = p.Text.Replace(labelElement.Text, "").Trim();
+                                lastLabel = label;
+                            }
+                            else
+                            {
+                                // No valid label, treat as continuation
+                                value = p.Text.Trim();
+                                label = lastLabel;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Something weird? Skip.
+                            Console.WriteLine($"Erro ao processar parágrafo: {ex.Message}");
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(label))
+                            continue;
+
+                        // Match and assign based on different label types
+                        if (label.Contains("nome completo"))
+                            heroi.NomeCompleto = value;
+                        if (label.Contains("nome"))
+                            heroi.NomeCompleto = value;
+                        else if (label.Contains("data de nascimento"))
+                            heroi.DataNascimento = value;
+                        else if (label.Contains("local de nascimento"))
+                            heroi.LocalNascimento = value;
+                        else if (label.Contains("data de falecimento"))
+                            heroi.DataFalecimento = value;
+                        else if (label.Contains("área de atuação"))
+                            heroi.AreaAtuacao = value;
                     }
-                    catch
+                }
+                else
+                {
+                    // Handle case where all data is inside a single <p> tag
+                    string fullText = paragrafos.FirstOrDefault()?.Text;
+                    var label = fullText.ToLower();
+
+                    if (!string.IsNullOrEmpty(fullText))
                     {
-                        continue;
+                        // Split the full text based on known labels
+                        if (label.Contains("nome completo"))
+                            heroi.NomeCompleto = ExtractValue(fullText, "nome completo");
+                        else if (label.Contains("nome"))
+                            heroi.NomeCompleto = ExtractValue(fullText, "nome");
+                        else if (label.Contains("data de nascimento"))
+                            heroi.DataNascimento = ExtractValue(fullText, "data de nascimento");
+                        else if (label.Contains("local de nascimento"))
+                            heroi.LocalNascimento = ExtractValue(fullText, "local de nascimento");
+                        else if (label.Contains("data de falecimento"))
+                            heroi.DataFalecimento = ExtractValue(fullText, "data de falecimento");
+                        else if (label.Contains("área de atuação"))
+                            heroi.AreaAtuacao = ExtractValue(fullText, "área de atuação");
                     }
+                }
+
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // Ajuste o tempo conforme necessário
+                try
+                {
+                    wait.Until(driver => driver.FindElement(By.CssSelector("div.heroBox > img")));
+
+                    // Get all <img> elements inside the slick-track
+                    var imgElements = _driver.FindElement(By.CssSelector("div.heroBox > img"));
+
+                    // Use HashSet to avoid duplicates from cloned slides
+                    var imageUrls = new HashSet<string>();
+
+                    var src = imgElements.GetAttribute("src");
+                    heroi.ImagemPersonalidade = src;
+
+                }
+                catch (Exception e)
+                {
+                    heroi.ImagemPersonalidade = null;
+                }
+
+                try
+                {
+                    heroi.TituloTexto = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt > h1")).Text;
+                }
+                catch (Exception e)
+                {
+                    heroi.TituloTexto = null;
+                }
+
+                try
+                {
+                    var textos = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt > p"));
+                    foreach (var texto in textos)
+                        heroi.Textos.Add(texto.Text.Trim());
+                }
+                catch (Exception e)
+                {
+                    heroi.Textos = null;
+                }
+
+                try
+                {
+                    var imagens = _driver.FindElements(By.CssSelector("dl.gallery-item.slick-slide"));
+                    foreach (var imagem in imagens)
+                    {
+                        var imageElement = imagem.FindElement(By.CssSelector("img"));
+                        heroi.Imagens.Add(new Image
+                        {
+                            Url = imageElement.GetAttribute("src"),
+                            Descricao = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim()
+                        });
+                    }
+                }
+                catch (Exception e)
+                {
+                    heroi.Imagens = null;
+                }
+
+                try
+                {
+                    var saibaMaisSection = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt"));
+                    var iframeElements = saibaMaisSection.FindElements(By.TagName("iframe.instagram-media"));
+
+                    foreach (var iframe in iframeElements)
+                    {
+                        heroi.InstagramIframes.Add(iframe.GetAttribute("src"));
+                    }
+                }
+                catch (NoSuchElementException)
+                {
+                    heroi.InstagramIframes = null;
+                }
+
+                try
+                {
+                    var iframeElements = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt iframe"));
+
+                    foreach (var iframe in iframeElements)
+                    {
+                        heroi.YoutubeIframes.Add(iframe.GetAttribute("src"));
+                    }
+                }
+                catch (NoSuchElementException)
+                {
+                    heroi.YoutubeIframes = null;
                 }
 
             }
@@ -105,6 +231,18 @@ namespace ScrappingMockMuseu.Scrapper
             }
 
             return heroi;
+        }
+
+        private string ExtractValue(string fullText, string label)
+        {
+            var temp = fullText.ToLower();
+            var index = temp.IndexOf(label);
+
+            if (index != -1)
+            {
+                return fullText.Substring(index + label.Length).Split("\r").FirstOrDefault().Split(":").LastOrDefault().Trim();
+            }
+            return string.Empty;
         }
     }
 }
