@@ -3,14 +3,15 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using ScrappingMockMuseu.Models;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ScrappingMockMuseu.Scrapper
 {
-    public class HeroiScraper
+    public class HeroiScrapper
     {
         private readonly IWebDriver _driver;
 
-        public HeroiScraper()
+        public HeroiScrapper()
         {
             var options = new ChromeOptions();
             options.AddArgument("--headless");
@@ -60,8 +61,26 @@ namespace ScrappingMockMuseu.Scrapper
                 var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent > p"));
                 string lastLabel = null;
 
-                if (paragrafos.Count > 3)
+                // Detect if it's a "group-style" page
+                bool isGroupLayout =
+                    paragrafos.Count > 1 &&
+                    paragrafos.First().Text.Trim().ToLower().Contains("o time do") ||
+                    heroi.Apelido.Contains(",") || // like "Angelú, Engole Garfo e Bocca Larga"
+                    paragrafos.Any(p => p.Text.Contains("Nascimento>") || p.Text.Contains("Nascimento:"));
+
+                // If it's a group-style page, just store raw text paragraphs
+                if (isGroupLayout)
                 {
+                    foreach (var p in paragrafos)
+                    {
+                        string text = p.Text.Trim();
+                        if (!string.IsNullOrWhiteSpace(text))
+                            heroi.Textos.Add(text);
+                    }
+                }
+                else
+                {
+                    // Regular parsing logic for individual heroes
                     foreach (var p in paragrafos)
                     {
                         string label = null;
@@ -70,8 +89,6 @@ namespace ScrappingMockMuseu.Scrapper
                         try
                         {
                             var labelElements = p.FindElements(By.CssSelector("strong, b"));
-
-                            // Pick the first label element that has text
                             var labelElement = labelElements.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e.Text));
 
                             if (labelElement != null)
@@ -82,57 +99,31 @@ namespace ScrappingMockMuseu.Scrapper
                             }
                             else
                             {
-                                // No valid label, treat as continuation
                                 value = p.Text.Trim();
                                 label = lastLabel;
                             }
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            // Something weird? Skip.
-                            Console.WriteLine($"Erro ao processar parágrafo: {ex.Message}");
                             continue;
                         }
 
                         if (string.IsNullOrWhiteSpace(label))
                             continue;
 
-                        // Match and assign based on different label types
+                        // Match and assign based on labels
                         if (label.Contains("nome completo"))
                             heroi.NomeCompleto = value;
-                        if (label.Contains("nome"))
+                        else if (label.Contains("nome"))
                             heroi.NomeCompleto = value;
+                        else if (label.Contains("área de atuação"))
+                            heroi.AreaAtuacao = value;
                         else if (label.Contains("data de nascimento"))
                             heroi.DataNascimento = value;
                         else if (label.Contains("local de nascimento"))
                             heroi.LocalNascimento = value;
                         else if (label.Contains("data de falecimento"))
                             heroi.DataFalecimento = value;
-                        else if (label.Contains("área de atuação"))
-                            heroi.AreaAtuacao = value;
-                    }
-                }
-                else
-                {
-                    // Handle case where all data is inside a single <p> tag
-                    string fullText = paragrafos.FirstOrDefault()?.Text;
-                    var label = fullText.ToLower();
-
-                    if (!string.IsNullOrEmpty(fullText))
-                    {
-                        // Split the full text based on known labels
-                        if (label.Contains("nome completo"))
-                            heroi.NomeCompleto = ExtractValue(fullText, "nome completo");
-                        else if (label.Contains("nome"))
-                            heroi.NomeCompleto = ExtractValue(fullText, "nome");
-                        else if (label.Contains("data de nascimento"))
-                            heroi.DataNascimento = ExtractValue(fullText, "data de nascimento");
-                        else if (label.Contains("local de nascimento"))
-                            heroi.LocalNascimento = ExtractValue(fullText, "local de nascimento");
-                        else if (label.Contains("data de falecimento"))
-                            heroi.DataFalecimento = ExtractValue(fullText, "data de falecimento");
-                        else if (label.Contains("área de atuação"))
-                            heroi.AreaAtuacao = ExtractValue(fullText, "área de atuação");
                     }
                 }
 
@@ -196,30 +187,28 @@ namespace ScrappingMockMuseu.Scrapper
 
                 try
                 {
-                    var saibaMaisSection = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt"));
-                    var iframeElements = saibaMaisSection.FindElements(By.TagName("iframe.instagram-media"));
-
-                    foreach (var iframe in iframeElements)
-                    {
-                        heroi.InstagramIframes.Add(iframe.GetAttribute("src"));
-                    }
-                }
-                catch (NoSuchElementException)
-                {
-                    heroi.InstagramIframes = null;
-                }
-
-                try
-                {
                     var iframeElements = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt iframe"));
 
                     foreach (var iframe in iframeElements)
                     {
-                        heroi.YoutubeIframes.Add(iframe.GetAttribute("src"));
+                        var src = iframe.GetAttribute("src");
+
+                        if (string.IsNullOrEmpty(src))
+                            continue;
+
+                        if (src.Contains("instagram.com", StringComparison.OrdinalIgnoreCase))
+                        {
+                            heroi.InstagramIframes.Add(src);
+                        }
+                        else if (src.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) || src.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
+                        {
+                            heroi.YoutubeIframes.Add(src);
+                        }
                     }
                 }
-                catch (NoSuchElementException)
+                catch (Exception)
                 {
+                    heroi.InstagramIframes = null;
                     heroi.YoutubeIframes = null;
                 }
 
@@ -229,20 +218,8 @@ namespace ScrappingMockMuseu.Scrapper
                 Console.WriteLine($"Erro ao processar {url}: {ex.Message}");
                 return null;
             }
-
+     
             return heroi;
-        }
-
-        private string ExtractValue(string fullText, string label)
-        {
-            var temp = fullText.ToLower();
-            var index = temp.IndexOf(label);
-
-            if (index != -1)
-            {
-                return fullText.Substring(index + label.Length).Split("\r").FirstOrDefault().Split(":").LastOrDefault().Trim();
-            }
-            return string.Empty;
         }
     }
 }

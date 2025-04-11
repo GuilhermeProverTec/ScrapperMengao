@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 
 namespace ScrappingMockMuseu.Scrapper
 {
@@ -64,84 +65,145 @@ namespace ScrappingMockMuseu.Scrapper
             try
             {
                 heroi.Apelido = _driver.FindElement(By.CssSelector("body > div.container.personalidades > div > div.heroBox.fullWidth.personalidades > h1")).Text;
-                var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent.ficha_tecnica > p"));
-                string lastLabel = null;
+                //var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent.ficha_tecnica > p"));
+                //string lastLabel = null;
 
-                if (paragrafos.Count > 3)
+                //foreach (var p in paragrafos)
+                //{
+                //    string rawText = p.Text;
+
+                //    var knownLabels = new Dictionary<string, Action<string>>(StringComparer.OrdinalIgnoreCase)
+                //    {
+                //        { "nome completo:", val => heroi.NomeCompleto = val },
+                //        { "nome:", val => heroi.NomeCompleto = val },
+                //        { "data de nascimento:", val => heroi.DataNascimento = val },
+                //        { "local de nascimento:", val => heroi.LocalNascimento = val },
+                //        { "área de atuação:", val => heroi.AreaAtuacao = val },
+                //        { "data de falecimento:", val => heroi.DataFalecimento = val }
+                //    };
+
+                //    foreach (var kvp in knownLabels)
+                //    {
+                //        var label = kvp.Key;
+                //        var assign = kvp.Value;
+
+                //        int index = rawText.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+                //        if (index >= 0)
+                //        {
+                //            int start = index + label.Length;
+                //            int end = rawText.Length;
+
+                //            // Try to find the next label
+                //            foreach (var otherLabel in knownLabels.Keys)
+                //            {
+                //                if (otherLabel.Equals(label, StringComparison.OrdinalIgnoreCase))
+                //                    continue;
+
+                //                int otherIndex = rawText.IndexOf(otherLabel, start, StringComparison.OrdinalIgnoreCase);
+                //                if (otherIndex != -1 && otherIndex < end)
+                //                    end = otherIndex;
+                //            }
+
+                //            var value = rawText.Substring(start, end - start).Trim(':', '-', ' ', '\n', '\r');
+                //            assign(value);
+                //        }
+                //    }
+                //}
+                var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent.ficha_tecnica > p"));
+                var fullText = string.Join("\n", paragrafos.Select(p => p.Text));
+
+                int countNomeCompleto = Regex.Matches(fullText, @"(?i)nome completo:").Count;
+
+                if (countNomeCompleto == 2)
                 {
+                    // Handle Claudinho e Buchecha (special case: 2 people, merged)
+                    string nomeCompleto1 = null, nomeCompleto2 = null;
+                    string dataNascimento1 = null, dataNascimento2 = null;
+                    string dataFalecimento = null;
+                    string localNascimento1 = null, localNascimento2 = null;
+                    string areaAtuacao1 = null, areaAtuacao2 = null;
+
                     foreach (var p in paragrafos)
                     {
-                        string label = null;
-                        string value = null;
+                        var text = p.Text;
 
-                        try
+                        if (text.Contains("Nome completo:", StringComparison.OrdinalIgnoreCase))
                         {
-                            var labelElements = p.FindElements(By.CssSelector("strong, b"));
+                            var nome = GetField(text, "Nome completo:");
+                            var nascimento = GetField(text, "Data de nascimento:");
+                            var falecimento = GetField(text, "Data de falecimento:");
+                            var local = GetField(text, "Local de nascimento:");
+                            var area = GetField(text, "Área de atuação:");
 
-                            // Pick the first label element that has text
-                            var labelElement = labelElements.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e.Text));
-
-                            if (labelElement != null)
+                            if (string.IsNullOrEmpty(nomeCompleto1))
                             {
-                                label = labelElement.Text.Trim().ToLower();
-                                value = p.Text.Replace(labelElement.Text, "").Trim();
-                                lastLabel = label;
+                                nomeCompleto1 = nome;
+                                dataNascimento1 = nascimento;
+                                dataFalecimento = falecimento;
+                                localNascimento1 = local;
+                                areaAtuacao1 = area;
                             }
                             else
                             {
-                                // No valid label, treat as continuation
-                                value = p.Text.Trim();
-                                label = lastLabel;
+                                nomeCompleto2 = nome;
+                                dataNascimento2 = nascimento;
+                                localNascimento2 = local;
+                                areaAtuacao2 = area;
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            // Something weird? Skip.
-                            Console.WriteLine($"Erro ao processar parágrafo: {ex.Message}");
-                            continue;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(label))
-                            continue;
-
-                        // Match and assign based on different label types
-                        if (label.Contains("nome completo"))
-                            heroi.NomeCompleto = value;
-                        else if (label.Contains("data de nascimento"))
-                            heroi.DataNascimento = value;
-                        else if (label.Contains("local de nascimento"))
-                            heroi.LocalNascimento = value;
-                        else if (label.Contains("data de falecimento"))
-                            heroi.DataFalecimento = value;
-                        else if (label.Contains("área de atuação"))
-                            heroi.AreaAtuacao = value;
                     }
+
+                    heroi.NomeCompleto = $"{nomeCompleto1} / {nomeCompleto2}";
+                    heroi.DataNascimento = $"{dataNascimento1} / {dataNascimento2}";
+                    heroi.LocalNascimento = $"{localNascimento1} / {localNascimento2}";
+                    heroi.DataFalecimento = dataFalecimento;
+                    heroi.AreaAtuacao = $"{areaAtuacao1}";
                 }
                 else
                 {
-                    // Handle case where all data is inside a single <p> tag
-                    string fullText = paragrafos.FirstOrDefault()?.Text;
-                    var label = fullText.ToLower();
-
-                    if (!string.IsNullOrEmpty(fullText))
+                    // Standard parsing for single person (default flow)
+                    foreach (var p in paragrafos)
                     {
-                        // Split the full text based on known labels
-                        if (label.Contains("nome completo"))
-                            heroi.NomeCompleto = ExtractValue(fullText, "nome completo");
-                        if (label.Contains("nome"))
-                            heroi.NomeCompleto = ExtractValue(fullText, "nome");
-                        if (label.Contains("data de nascimento"))
-                            heroi.DataNascimento = ExtractValue(fullText, "data de nascimento");
-                        if (label.Contains("local de nascimento"))
-                            heroi.LocalNascimento = ExtractValue(fullText, "local de nascimento");
-                        if (label.Contains("data de falecimento"))
-                            heroi.DataFalecimento = ExtractValue(fullText, "data de falecimento");
-                        if (label.Contains("área de atuação"))
-                            heroi.AreaAtuacao = ExtractValue(fullText, "área de atuação");
+                        string rawText = p.Text;
+
+                        var knownLabels = new Dictionary<string, Action<string>>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            { "nome completo:", val => heroi.NomeCompleto = val },
+                             { "nome:", val => heroi.NomeCompleto = val },
+                            { "data de nascimento:", val => heroi.DataNascimento = val },
+                            { "data de falecimento:", val => heroi.DataFalecimento = val },
+                            { "local de nascimento:", val => heroi.LocalNascimento = val },
+                            { "área de atuação:", val => heroi.AreaAtuacao = val }
+                        };
+
+                        foreach (var kvp in knownLabels)
+                        {
+                            var label = kvp.Key;
+                            var assign = kvp.Value;
+
+                            int index = rawText.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+                            if (index >= 0)
+                            {
+                                int start = index + label.Length;
+                                int end = rawText.Length;
+
+                                // Try to find the next label
+                                foreach (var otherLabel in knownLabels.Keys)
+                                {
+                                    if (otherLabel.Equals(label, StringComparison.OrdinalIgnoreCase))
+                                        continue;
+
+                                    int otherIndex = rawText.IndexOf(otherLabel, start, StringComparison.OrdinalIgnoreCase);
+                                    if (otherIndex != -1 && otherIndex < end)
+                                        end = otherIndex;
+                                }
+
+                                var value = rawText.Substring(start, end - start).Trim(':', '-', ' ', '\n', '\r');
+                                assign(value);
+                            }
+                        }
                     }
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -178,7 +240,7 @@ namespace ScrappingMockMuseu.Scrapper
             {
                 heroi.TituloTexto = _driver.FindElement(By.CssSelector("div.fullWidth.sobre.stdCnt > h1")).Text;
             }
-            catch(Exception e) 
+            catch (Exception e)
             {
                 heroi.TituloTexto = null;
             }
@@ -206,8 +268,8 @@ namespace ScrappingMockMuseu.Scrapper
                     });
                 }
             }
-            catch(Exception e) 
-            { 
+            catch (Exception e)
+            {
                 heroi.SaibaMais = null;
             }
 
@@ -238,7 +300,7 @@ namespace ScrappingMockMuseu.Scrapper
                     Url = imageElement.GetAttribute("src"),
                     Legenda = imagem.FindElement(By.CssSelector(".wp-caption-text")).Text.Trim()
                 });
-                
+
             }
             catch (Exception e)
             {
@@ -251,8 +313,10 @@ namespace ScrappingMockMuseu.Scrapper
                 var iframeElements = saibaMaisSection.FindElements(By.TagName("iframe"));
 
                 foreach (var iframe in iframeElements)
-                {         
-                    heroi.YoutubeIframes.Add(iframe.GetAttribute("src"));
+                {
+                    var src = iframe.GetAttribute("src");
+                    if(src.Contains("youtube"))
+                        heroi.YoutubeIframes.Add(src);
                 }
             }
             catch (NoSuchElementException)
@@ -262,16 +326,30 @@ namespace ScrappingMockMuseu.Scrapper
 
             return heroi;
         }
-        private string ExtractValue(string fullText, string label)
+        private string GetField(string text, string label)
         {
-            var temp = fullText.ToLower();
-            var index = temp.IndexOf(label);
-            
-            if (index != -1)
+            int index = text.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+            if (index < 0) return null;
+
+            int start = index + label.Length;
+            int end = text.Length;
+
+            var knownLabels = new[] {
+                "Nome completo:", "Data de nascimento:", "Data de falecimento:",
+                "Local de nascimento:", "Área de atuação:"
+            };
+
+            foreach (var nextLabel in knownLabels)
             {
-                return fullText.Substring(index + label.Length).Split("\r").FirstOrDefault().Split(":").LastOrDefault().Trim();
+                if (nextLabel.Equals(label, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int labelIndex = text.IndexOf(nextLabel, start, StringComparison.OrdinalIgnoreCase);
+                if (labelIndex >= 0 && labelIndex < end)
+                    end = labelIndex;
             }
-            return string.Empty;
+
+            return text.Substring(start, end - start).Trim(':', '-', ' ', '\n', '\r');
         }
     }
 }

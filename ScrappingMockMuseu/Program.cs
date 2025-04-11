@@ -6,9 +6,9 @@ class Program
     {
         Console.WriteLine("Iniciando scraping dos heróis...");
 
-        var scraper = new PersonalidadesScrapper();
+        var scraper = new HeroiScrapper();
         var herois = scraper.ObterHerois();
-        scraper.SalvarHeroisComoJson(herois, "Presidentes/personalidades.json");
+        scraper.SalvarHeroisComoJson(herois, "História/herois.json");
 
         //foreach (var h in herois)
         //{
