@@ -2,6 +2,10 @@
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using ScrappingMockMuseu.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -21,10 +25,17 @@ namespace ScrappingMockMuseu.Scrapper
         public List<Heroi> ObterHerois()
         {
             var herois = new List<Heroi>();
-            _driver.Navigate().GoToUrl("https://www.museuflamengo.com/herois");
+            //_driver.Navigate().GoToUrl("https://www.museuflamengo.com/herois");
+           // _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/futebol/");
+           // _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/basquete/");
+           _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/remo/"); 
+
 
             var linkElements = _driver.FindElements(By.CssSelector("div.listNamesAlphabet.fullWidth ul li a"));
-            var hrefs = linkElements.Select(link => link.GetAttribute("href")).Where(href => !string.IsNullOrEmpty(href)).ToList();
+            var hrefs = linkElements
+                .Select(link => link.GetAttribute("href"))
+                .Where(href => !string.IsNullOrEmpty(href))
+                .ToList();
 
             foreach (var href in hrefs)
             {
@@ -46,112 +57,73 @@ namespace ScrappingMockMuseu.Scrapper
 
         private Heroi ObterDadosHeroi(string url)
         {
-            // Increase page load timeout (e.g., 3 minutes)
             _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
-
-            // Increase asynchronous JavaScript timeout (e.g., 2 minutes)
             _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
 
-            _driver.Navigate().GoToUrl(url);
             var heroi = new Heroi();
-
             try
             {
+                _driver.Navigate().GoToUrl(url);
+
                 heroi.Apelido = _driver.FindElement(By.CssSelector("div.heroBox h1")).Text;
+
                 var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent > p"));
-                string lastLabel = null;
+                var fullText = string.Join("\n", paragrafos.Select(p => p.Text));
 
-                // Detect if it's a "group-style" page
-                bool isGroupLayout =
-                    paragrafos.Count > 1 &&
-                    paragrafos.First().Text.Trim().ToLower().Contains("o time do") ||
-                    heroi.Apelido.Contains(",") || // like "Angelú, Engole Garfo e Bocca Larga"
-                    paragrafos.Any(p => p.Text.Contains("Nascimento>") || p.Text.Contains("Nascimento:"));
+                int countNomeCompleto = Regex.Matches(fullText, @"(?i)nome completo").Count;
 
-                // If it's a group-style page, just store raw text paragraphs
-                if (isGroupLayout)
+                if (countNomeCompleto > 1)
                 {
-                    foreach (var p in paragrafos)
-                    {
-                        string text = p.Text.Trim();
-                        if (!string.IsNullOrWhiteSpace(text))
-                            heroi.Textos.Add(text);
-                    }
+                    // Handle special cases (e.g. multiple people)
+                    // [Optional]: Implement logic if needed
                 }
                 else
                 {
-                    // Regular parsing logic for individual heroes
                     foreach (var p in paragrafos)
                     {
-                        string label = null;
-                        string value = null;
+                        string rawText = p.Text;
 
-                        try
+                        var knownLabels = new Dictionary<string, Action<string>>(StringComparer.OrdinalIgnoreCase)
                         {
-                            var labelElements = p.FindElements(By.CssSelector("strong, b"));
-                            var labelElement = labelElements.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e.Text));
+                            { "nome completo", val => heroi.NomeCompleto = val },
+                            { "data de nascimento", val => heroi.DataNascimento = val },
+                            { "data de falecimento", val => heroi.DataFalecimento = val },
+                            { "local de nascimento", val => heroi.LocalNascimento = val },
+                            { "área de atuação", val => heroi.AreaAtuacao = val }
+                        };
 
-                            if (labelElement != null)
+                        foreach (var kvp in knownLabels)
+                        {
+                            var label = kvp.Key;
+                            var assign = kvp.Value;
+
+                            int index = rawText.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+                            if (index >= 0)
                             {
-                                label = labelElement.Text.Trim().ToLower();
-                                value = p.Text.Replace(labelElement.Text, "").Trim();
-                                lastLabel = label;
-                            }
-                            else
-                            {
-                                value = p.Text.Trim();
-                                label = lastLabel;
+                                string value = GetField(rawText, label);
+                                assign(value);
                             }
                         }
-                        catch
-                        {
-                            continue;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(label))
-                            continue;
-
-                        // Match and assign based on labels
-                        if (label.Contains("nome completo"))
-                            heroi.NomeCompleto = value;
-                        else if (label.Contains("nome"))
-                            heroi.NomeCompleto = value;
-                        else if (label.Contains("área de atuação"))
-                            heroi.AreaAtuacao = value;
-                        else if (label.Contains("data de nascimento"))
-                            heroi.DataNascimento = value;
-                        else if (label.Contains("local de nascimento"))
-                            heroi.LocalNascimento = value;
-                        else if (label.Contains("data de falecimento"))
-                            heroi.DataFalecimento = value;
                     }
                 }
 
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // Ajuste o tempo conforme necessário
+                // Imagem do herói
                 try
                 {
-                    wait.Until(driver => driver.FindElement(By.CssSelector("div.heroBox > img")));
-
-                    // Get all <img> elements inside the slick-track
-                    var imgElements = _driver.FindElement(By.CssSelector("div.heroBox > img"));
-
-                    // Use HashSet to avoid duplicates from cloned slides
-                    var imageUrls = new HashSet<string>();
-
-                    var src = imgElements.GetAttribute("src");
-                    heroi.ImagemPersonalidade = src;
-
+                    var img = _driver.FindElement(By.CssSelector("div.heroBox > img"));
+                    heroi.ImagemPersonalidade = img?.GetAttribute("src");
                 }
-                catch (Exception e)
+                catch
                 {
                     heroi.ImagemPersonalidade = null;
                 }
 
+                // Título e textos
                 try
                 {
                     heroi.TituloTexto = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt > h1")).Text;
                 }
-                catch (Exception e)
+                catch
                 {
                     heroi.TituloTexto = null;
                 }
@@ -162,64 +134,84 @@ namespace ScrappingMockMuseu.Scrapper
                     foreach (var texto in textos)
                         heroi.Textos.Add(texto.Text.Trim());
                 }
-                catch (Exception e)
+                catch
                 {
                     heroi.Textos = null;
                 }
 
+                // Galeria de imagens
                 try
                 {
                     var imagens = _driver.FindElements(By.CssSelector("dl.gallery-item.slick-slide"));
                     foreach (var imagem in imagens)
                     {
-                        var imageElement = imagem.FindElement(By.CssSelector("img"));
+                        var img = imagem.FindElement(By.CssSelector("img"));
+                        var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
+
                         heroi.Imagens.Add(new Image
                         {
-                            Url = imageElement.GetAttribute("src"),
-                            Descricao = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim()
+                            Url = img.GetAttribute("src"),
+                            Descricao = legenda
                         });
                     }
                 }
-                catch (Exception e)
+                catch
                 {
                     heroi.Imagens = null;
                 }
 
+                // Iframes (YouTube e Instagram)
                 try
                 {
-                    var iframeElements = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt iframe"));
-
-                    foreach (var iframe in iframeElements)
+                    var iframes = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt iframe"));
+                    foreach (var iframe in iframes)
                     {
                         var src = iframe.GetAttribute("src");
-
-                        if (string.IsNullOrEmpty(src))
-                            continue;
-
-                        if (src.Contains("instagram.com", StringComparison.OrdinalIgnoreCase))
-                        {
+                        if (src.Contains("instagram", StringComparison.OrdinalIgnoreCase))
                             heroi.InstagramIframes.Add(src);
-                        }
-                        else if (src.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) || src.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
-                        {
+                        else if (src.Contains("youtube", StringComparison.OrdinalIgnoreCase) || src.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
                             heroi.YoutubeIframes.Add(src);
-                        }
                     }
                 }
-                catch (Exception)
+                catch
                 {
                     heroi.InstagramIframes = null;
                     heroi.YoutubeIframes = null;
                 }
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao processar {url}: {ex.Message}");
                 return null;
             }
-     
+
             return heroi;
+        }
+
+        private string GetField(string text, string label)
+        {
+            int index = text.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+            if (index < 0) return null;
+
+            int start = index + label.Length;
+            int end = text.Length;
+
+            var knownLabels = new[] {
+                "Nome completo", "Data de nascimento", "Data de falecimento",
+                "Local de nascimento", "Área de atuação"
+            };
+
+            foreach (var nextLabel in knownLabels)
+            {
+                if (nextLabel.Equals(label, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int labelIndex = text.IndexOf(nextLabel, start, StringComparison.OrdinalIgnoreCase);
+                if (labelIndex >= 0 && labelIndex < end)
+                    end = labelIndex;
+            }
+
+            return text.Substring(start, end - start).Trim(':', '-', ' ', '\n', '\r');
         }
     }
 }
