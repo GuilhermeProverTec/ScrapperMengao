@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-
 namespace ScrappingMockMuseu.Scrapper
 {
     public class HeroiScrapper
@@ -26,9 +25,10 @@ namespace ScrappingMockMuseu.Scrapper
         {
             var herois = new List<Heroi>();
             //_driver.Navigate().GoToUrl("https://www.museuflamengo.com/herois");
-           // _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/futebol/");
-           // _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/basquete/");
-           _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/remo/"); 
+            // _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/futebol/");
+            // _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/basquete/");
+            //_driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/remo/"); 
+            _driver.Navigate().GoToUrl("https://www.museuflamengo.com/herois");
 
 
             var linkElements = _driver.FindElements(By.CssSelector("div.listNamesAlphabet.fullWidth ul li a"));
@@ -72,23 +72,75 @@ namespace ScrappingMockMuseu.Scrapper
 
                 int countNomeCompleto = Regex.Matches(fullText, @"(?i)nome completo").Count;
 
-                if (countNomeCompleto > 1)
+                bool containsMultiple = paragrafos.Any(p => Regex.IsMatch(p.Text, @"\([^)]+\)")); // crude check for aliases in parentheses
+
+                bool isTeam = paragrafos.Count > 2 && paragrafos[0].Text.Trim().StartsWith("O time", StringComparison.OrdinalIgnoreCase);
+                if (isTeam)
                 {
-                    // Handle special cases (e.g. multiple people)
-                    // [Optional]: Implement logic if needed
+                    for (int i = 1; i < paragrafos.Count; i++) // skip the title line
+                    {
+                        string nome = paragrafos[i].Text.Trim();
+                        if (!string.IsNullOrWhiteSpace(nome))
+                        {
+                            heroi.DadosPessoais.Add(new DadosPessoais
+                            {
+                                NomeCompleto = nome
+                            });
+                        }
+                    }                }
+
+
+                else if (containsMultiple)
+                {
+                    foreach (var p in paragrafos)
+                    {
+                        var rawText = p.Text;
+
+                        // Match something like:
+                        // "Antonio Rebello Junior (Engole Garfo)\nNascimento: 22/02/1906 – Rio de Janeiro/RJ – Brasil"
+                        var match = Regex.Match(rawText,
+                        @"^(?<nome>.+?)\s*\((?<apelido>[^)]+)\)\s*(?:<br>)?\s*Nascimento[:>]\s*(?<nascimento>[\d/]+)\s*[-–]\s*(?<local>.+?)(?:\s*<br>?\s*Falecimento[:>]\s*(?<falecimento>[\d/]+))?$",
+                        RegexOptions.IgnoreCase);
+
+
+                        if (match.Success)
+                        {
+                            var dadosPessoais = new DadosPessoais
+                            {
+                                NomeCompleto = match.Groups["nome"].Value.Trim(),
+                                Apelido = match.Groups["apelido"].Value.Trim(),
+                                DataNascimento = match.Groups["nascimento"].Value.Trim(),
+                                LocalNascimento = match.Groups["local"].Value.Trim()
+                            };
+
+                            if (match.Groups["falecimento"].Success)
+                                dadosPessoais.DataFalecimento = match.Groups["falecimento"].Value.Trim();
+
+
+                            heroi.DadosPessoais.Add(dadosPessoais);
+                        }
+                        else if (rawText.Contains("Área de atuação", StringComparison.OrdinalIgnoreCase))
+                        {
+                            heroi.AreaAtuacao = GetField(rawText, "Área de atuação");
+                        }
+                    }
                 }
                 else
                 {
+
+                    var dadosPessoais = new DadosPessoais();
+
+                    // fallback: original single-hero logic
                     foreach (var p in paragrafos)
                     {
                         string rawText = p.Text;
 
                         var knownLabels = new Dictionary<string, Action<string>>(StringComparer.OrdinalIgnoreCase)
                         {
-                            { "nome completo", val => heroi.NomeCompleto = val },
-                            { "data de nascimento", val => heroi.DataNascimento = val },
-                            { "data de falecimento", val => heroi.DataFalecimento = val },
-                            { "local de nascimento", val => heroi.LocalNascimento = val },
+                            { "nome completo", val => dadosPessoais.NomeCompleto = val },
+                            { "data de nascimento", val => dadosPessoais.DataNascimento = val },
+                            { "data de falecimento", val => dadosPessoais.DataFalecimento = val },
+                            { "local de nascimento", val => dadosPessoais.LocalNascimento = val },
                             { "área de atuação", val => heroi.AreaAtuacao = val }
                         };
 
@@ -105,7 +157,11 @@ namespace ScrappingMockMuseu.Scrapper
                             }
                         }
                     }
+                    if (!string.IsNullOrWhiteSpace(dadosPessoais.NomeCompleto))
+                        heroi.DadosPessoais.Add(dadosPessoais);
+
                 }
+
 
                 // Imagem do herói
                 try
