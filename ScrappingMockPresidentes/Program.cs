@@ -8,7 +8,7 @@ class Program
 
         var scraper = new PresidentesScrapper();
         var presidentes = scraper.ObterPresidentes();
-        scraper.SalvarPresidentesComoJson(presidentes, "Json/presidentes.json");
+        scraper.SalvarPresidentesComoJson(presidentes, "Json/Presidentes.json");
 
         Console.WriteLine($"\nTotal de heróis encontrados: {presidentes.Count}");
     }

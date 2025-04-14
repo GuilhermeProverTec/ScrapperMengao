@@ -8,7 +8,7 @@ class Program
 
         var scraper = new HeroiScrapper();
         var herois = scraper.ObterHerois();
-        scraper.SalvarHeroisComoJson(herois, "Json/herois.json");
+        scraper.SalvarHeroisComoJson(herois, "Json/HeroisDaNacao.json");
 
         Console.WriteLine($"\nTotal de heróis encontrados: {herois.Count}");
     }

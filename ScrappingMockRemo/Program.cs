@@ -8,7 +8,7 @@ class Program
 
         var scraper = new IdolosScrapper();
         var idolos = scraper.ObterIdolos();
-        scraper.SalvarIdolosComoJson(idolos, "Json/remo.json");
+        scraper.SalvarIdolosComoJson(idolos, "Json/Remo.json");
 
         Console.WriteLine($"\nTotal de heróis encontrados: {idolos.Count}");
     }

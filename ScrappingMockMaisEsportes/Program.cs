@@ -8,7 +8,7 @@ class Program
 
         var scraper = new EsportesScrapper();
         var esportes = scraper.ObterEsportes();
-        scraper.SalvarEsportesComoJson(esportes, "Json/maisEsportes.json");
+        scraper.SalvarEsportesComoJson(esportes, "Json/OutrosEsportes.json");
 
         Console.WriteLine($"\nTotal de heróis encontrados: {esportes.Count}");
     }

@@ -8,7 +8,7 @@ class Program
 
         var scraper = new PersonalidadesScrapper();
         var personalidades = scraper.ObterPersonalidades();
-        scraper.SalvarPersonalidadesComoJson(personalidades, "Json/personalidades.json");
+        scraper.SalvarPersonalidadesComoJson(personalidades, "Json/Personalidades.json");
 
         Console.WriteLine($"\nTotal de heróis encontrados: {personalidades.Count}");
     }
