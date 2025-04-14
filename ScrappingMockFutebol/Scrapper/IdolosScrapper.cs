@@ -179,7 +179,8 @@ namespace ScrappingMockIdolos.Scrapper
                 {
                     var textos = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt > p"));
                     foreach (var texto in textos)
-                        idolo.Textos.Add(texto.Text.Trim());
+                        if (texto.Text.Trim() != "")
+                            idolo.Textos.Add(texto.Text.Trim());
                 }
                 catch
                 {

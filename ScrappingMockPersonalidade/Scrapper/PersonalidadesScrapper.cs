@@ -293,7 +293,8 @@ namespace ScrappingMockPersonalidades.Scrapper
             {
                 var textos = _driver.FindElements(By.CssSelector("div.fullWidth.sobre.stdCnt > p"));
                 foreach (var texto in textos)
-                    personalidade.Textos.Add(texto.Text.Trim());
+                    if (texto.Text.Trim() != "")
+                        personalidade.Textos.Add(texto.Text.Trim());
             }
             catch (Exception e)
             {

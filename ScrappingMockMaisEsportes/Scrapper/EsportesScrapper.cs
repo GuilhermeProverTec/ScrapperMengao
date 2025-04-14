@@ -113,7 +113,8 @@ namespace ScrappingMockMaisEsportes.Scrapper
                     else
                     {
                         // Only add the text to the Textos list
-                        esporte.Textos.Add(textoContent);
+                        if (textoContent.Trim() != "")
+                            esporte.Textos.Add(textoContent);
                     }
                 }
             }
