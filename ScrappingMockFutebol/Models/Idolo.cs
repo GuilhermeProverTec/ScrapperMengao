@@ -1,6 +1,6 @@
-﻿namespace ScrappingMockMuseu.Models
+﻿namespace ScrappingMockIdolos.Models
 {
-    public class Heroi
+    public class Idolo
     {
         public string Apelido { get; set; }
         public List<DadosPessoais> DadosPessoais { get; set; } = new ();

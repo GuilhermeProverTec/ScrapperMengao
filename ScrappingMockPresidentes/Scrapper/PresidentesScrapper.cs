@@ -1,15 +1,10 @@
-﻿using OpenQA.Selenium.Chrome;
+﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using OpenQA.Selenium;
-using ScrappingMockMuseu.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ScrappingMockPresidentes.Models;
 using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace ScrappingMockMuseu.Scrapper
+namespace ScrappingMockPresidentes.Scrapper
 {
     public class PresidentesScrapper
     {
@@ -22,9 +17,9 @@ namespace ScrappingMockMuseu.Scrapper
             _driver = new ChromeDriver(options);
         }
 
-        public List<Presidente> ObterHerois()
+        public List<Presidente> ObterPresidentes()
         {
-            var herois = new List<Presidente>();
+            var presidentes = new List<Presidente>();
             _driver.Navigate().GoToUrl("https://museuflamengo.com/presidentes");
 
             var linkElements = _driver.FindElements(By.CssSelector("div.listNamesAlphabet.fullWidth ul li a"));
@@ -33,23 +28,23 @@ namespace ScrappingMockMuseu.Scrapper
 
             foreach (var href in hrefs)
             {
-                var heroi = ObterDadosHeroi(href);
-                if (heroi != null)
-                    herois.Add(heroi);
+                var presidente = ObterDadosPresidente(href);
+                if (presidente != null)
+                    presidentes.Add(presidente);
             }
 
             _driver.Quit();
-            return herois;
+            return presidentes;
         }
 
-        public void SalvarHeroisComoJson(List<Presidente> herois, string caminho)
+        public void SalvarPresidentesComoJson(List<Presidente> presidentes, string caminho)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(herois, options);
+            var json = JsonSerializer.Serialize(presidentes, options);
             File.WriteAllText(caminho, json);
         }
 
-        private Presidente ObterDadosHeroi(string url)
+        private Presidente ObterDadosPresidente(string url)
         {
             // Increase page load timeout (e.g., 3 minutes)
             _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
@@ -58,11 +53,11 @@ namespace ScrappingMockMuseu.Scrapper
             _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
 
             _driver.Navigate().GoToUrl(url);
-            var heroi = new Presidente();
+            var presidente = new Presidente();
 
             try
             {
-                heroi.Nome = _driver.FindElement(By.CssSelector("body > div.container > div > div.heroBox.lado_lado > div.texto.titulo.titulo-sub-vermelho > div.heroContent.ficha_tecnica > h1")).Text;
+                presidente.Nome = _driver.FindElement(By.CssSelector("body > div.container > div > div.heroBox.lado_lado > div.texto.titulo.titulo-sub-vermelho > div.heroContent.ficha_tecnica > h1")).Text;
                 var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent.ficha_tecnica > p"));
                 string lastLabel = null;
 
@@ -104,15 +99,15 @@ namespace ScrappingMockMuseu.Scrapper
 
                     // Match and assign
                     if (label.Contains("data de nascimento"))
-                        heroi.DataNascimento = value;
+                        presidente.DataNascimento = value;
                     else if (label.Contains("local de nascimento"))
-                        heroi.LocalNascimento = value;
+                        presidente.LocalNascimento = value;
                     else if (label.Contains("data de falecimento"))
-                        heroi.DataFalecimento = value;
+                        presidente.DataFalecimento = value;
                     else if (label.Contains("profissão"))
-                        heroi.Profissao = value;
+                        presidente.Profissao = value;
                     else if (label.Contains("mandato"))
-                        heroi.Mandato += (string.IsNullOrEmpty(heroi.Mandato) ? "" : "\n") + value;
+                        presidente.Mandato += (string.IsNullOrEmpty(presidente.Mandato) ? "" : "\n") + value;
                 }
 
 
@@ -127,21 +122,21 @@ namespace ScrappingMockMuseu.Scrapper
             try { 
                 IWebElement imgElement = wait.Until(driver => driver.FindElement(By.CssSelector("div.imagem img")));
                 var src = imgElement.GetAttribute("src");
-                heroi.Imagem = src;
+                presidente.Imagem = src;
             }
             catch(Exception e)
             {
-                heroi.Imagem = null;
+                presidente.Imagem = null;
             }
             try
             {
-                heroi.Observacao = _driver.FindElement(By.CssSelector("body > div.container > div > div.fullWidth.saiba_mais > p")).Text;
+                presidente.Observacao = _driver.FindElement(By.CssSelector("body > div.container > div > div.fullWidth.saiba_mais > p")).Text;
             }
             catch (Exception e)
             {
-                heroi.Observacao = null;
+                presidente.Observacao = null;
             }
-            return heroi;
+            return presidente;
         }
     }
 }

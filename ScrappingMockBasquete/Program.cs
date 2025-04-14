@@ -1,4 +1,4 @@
-﻿using ScrappingMockMuseu.Scrapper;
+﻿using ScrappingMockIdolos.Scrapper;
 
 class Program
 {
@@ -6,9 +6,9 @@ class Program
     {
         Console.WriteLine("Iniciando scraping dos heróis...");
 
-        var scraper = new EsportesScrapper();
-        var herois = scraper.ObterHerois();
-        scraper.SalvarHeroisComoJson(herois, "esportes.json");
+        var scraper = new IdolosScrapper();
+        var idolos = scraper.ObterIdolos();
+        scraper.SalvarIdolosComoJson(idolos, "Basquete/basquete.json");
 
         //foreach (var h in herois)
         //{
@@ -22,6 +22,6 @@ class Program
         //    Console.WriteLine($"Imagens: {h.Imagens.Count}, Instagram: {h.InstagramIframes.Count}, YouTube: {h.YoutubeIframes.Count}");
         //}
 
-        Console.WriteLine($"\nTotal de heróis encontrados: {herois.Count}");
+        Console.WriteLine($"\nTotal de heróis encontrados: {idolos.Count}");
     }
 }

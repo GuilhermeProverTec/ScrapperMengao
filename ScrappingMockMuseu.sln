@@ -1,9 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96 d17.13
+VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockMuseu", "ScrappingMockMuseu\ScrappingMockMuseu.csproj", "{7835416D-958A-4098-A0C1-0D04C5C13114}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockHerois", "ScrappingMockMuseu\ScrappingMockHerois.csproj", "{7835416D-958A-4098-A0C1-0D04C5C13114}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockMaisEsportes", "ScrappingMockMaisEsportes\ScrappingMockMaisEsportes.csproj", "{622265D0-C18C-4A49-B3F2-8404F1211375}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockPersonalidades", "ScrappingMockPersonalidade\ScrappingMockPersonalidades.csproj", "{35BABC4F-F7EA-4A71-B353-DDB02BC78716}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockPresidentes", "ScrappingMockPresidentes\ScrappingMockPresidentes.csproj", "{0D635C38-F852-4B85-B297-8DFE234FEC8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockFutebol", "ScrappingMockFutebol\ScrappingMockFutebol.csproj", "{973868FF-9C6C-42B9-A209-6C45877C5F48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockBasquete", "ScrappingMockBasquete\ScrappingMockBasquete.csproj", "{49A40233-DA0B-4CF9-98FB-15CBFB373768}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockRemo", "ScrappingMockRemo\ScrappingMockRemo.csproj", "{C9C3642E-2C25-47E7-807B-937016BB570D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +27,30 @@ Global
 		{7835416D-958A-4098-A0C1-0D04C5C13114}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7835416D-958A-4098-A0C1-0D04C5C13114}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7835416D-958A-4098-A0C1-0D04C5C13114}.Release|Any CPU.Build.0 = Release|Any CPU
+		{622265D0-C18C-4A49-B3F2-8404F1211375}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{622265D0-C18C-4A49-B3F2-8404F1211375}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{622265D0-C18C-4A49-B3F2-8404F1211375}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{622265D0-C18C-4A49-B3F2-8404F1211375}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35BABC4F-F7EA-4A71-B353-DDB02BC78716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35BABC4F-F7EA-4A71-B353-DDB02BC78716}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35BABC4F-F7EA-4A71-B353-DDB02BC78716}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35BABC4F-F7EA-4A71-B353-DDB02BC78716}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D635C38-F852-4B85-B297-8DFE234FEC8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D635C38-F852-4B85-B297-8DFE234FEC8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D635C38-F852-4B85-B297-8DFE234FEC8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D635C38-F852-4B85-B297-8DFE234FEC8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{973868FF-9C6C-42B9-A209-6C45877C5F48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{973868FF-9C6C-42B9-A209-6C45877C5F48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{973868FF-9C6C-42B9-A209-6C45877C5F48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{973868FF-9C6C-42B9-A209-6C45877C5F48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49A40233-DA0B-4CF9-98FB-15CBFB373768}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49A40233-DA0B-4CF9-98FB-15CBFB373768}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49A40233-DA0B-4CF9-98FB-15CBFB373768}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49A40233-DA0B-4CF9-98FB-15CBFB373768}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9C3642E-2C25-47E7-807B-937016BB570D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9C3642E-2C25-47E7-807B-937016BB570D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9C3642E-2C25-47E7-807B-937016BB570D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9C3642E-2C25-47E7-807B-937016BB570D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

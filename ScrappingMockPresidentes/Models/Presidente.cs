@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ScrappingMockMuseu.Models
+namespace ScrappingMockPresidentes.Models
 {
     public class Presidente
     {

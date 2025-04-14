@@ -1,25 +1,25 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using ScrappingMockMuseu.Models;
+using ScrappingMockIdolos.Models;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-namespace ScrappingMockMuseu.Scrapper
+namespace ScrappingMockIdolos.Scrapper
 {
-    public class HeroiScrapper
+    public class IdolosScrapper
     {
         private readonly IWebDriver _driver;
 
-        public HeroiScrapper()
+        public IdolosScrapper()
         {
             var options = new ChromeOptions();
             options.AddArgument("--headless");
             _driver = new ChromeDriver(options);
         }
 
-        public List<Heroi> ObterHerois()
+        public List<Idolo> ObterIdolos()
         {
-            var herois = new List<Heroi>();
-            _driver.Navigate().GoToUrl("https://www.museuflamengo.com/herois");
+            var idolos = new List<Idolo>();
+            _driver.Navigate().GoToUrl("https://museuflamengo.com/personagens/idolos/remo/"); 
 
 
             var linkElements = _driver.FindElements(By.CssSelector("div.listNamesAlphabet.fullWidth ul li a"));
@@ -30,33 +30,33 @@ namespace ScrappingMockMuseu.Scrapper
 
             foreach (var href in hrefs)
             {
-                var heroi = ObterDadosHeroi(href);
-                if (heroi != null)
-                    herois.Add(heroi);
+                var idolo = ObterDadosIdolo(href);
+                if (idolo != null)
+                    idolos.Add(idolo);
             }
 
             _driver.Quit();
-            return herois;
+            return idolos;
         }
 
-        public void SalvarHeroisComoJson(List<Heroi> herois, string caminho)
+        public void SalvarIdolosComoJson(List<Idolo> idolos, string caminho)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(herois, options);
+            var json = JsonSerializer.Serialize(idolos, options);
             File.WriteAllText(caminho, json);
         }
 
-        private Heroi ObterDadosHeroi(string url)
+        private Idolo ObterDadosIdolo(string url)
         {
             _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
             _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
 
-            var heroi = new Heroi();
+            var idolo = new Idolo();
             try
             {
                 _driver.Navigate().GoToUrl(url);
 
-                heroi.Apelido = _driver.FindElement(By.CssSelector("div.heroBox h1")).Text;
+                idolo.Apelido = _driver.FindElement(By.CssSelector("div.heroBox h1")).Text;
 
                 var paragrafos = _driver.FindElements(By.CssSelector("div.heroContent > p"));
                 var fullText = string.Join("\n", paragrafos.Select(p => p.Text));
@@ -73,7 +73,7 @@ namespace ScrappingMockMuseu.Scrapper
                         string nome = paragrafos[i].Text.Trim();
                         if (!string.IsNullOrWhiteSpace(nome))
                         {
-                            heroi.DadosPessoais.Add(new DadosPessoais
+                            idolo.DadosPessoais.Add(new DadosPessoais
                             {
                                 NomeCompleto = nome
                             });
@@ -108,11 +108,11 @@ namespace ScrappingMockMuseu.Scrapper
                                 dadosPessoais.DataFalecimento = match.Groups["falecimento"].Value.Trim();
 
 
-                            heroi.DadosPessoais.Add(dadosPessoais);
+                            idolo.DadosPessoais.Add(dadosPessoais);
                         }
                         else if (rawText.Contains("Área de atuação", StringComparison.OrdinalIgnoreCase))
                         {
-                            heroi.AreaAtuacao = GetField(rawText, "Área de atuação");
+                            idolo.AreaAtuacao = GetField(rawText, "Área de atuação");
                         }
                     }
                 }
@@ -132,7 +132,7 @@ namespace ScrappingMockMuseu.Scrapper
                             { "data de nascimento", val => dadosPessoais.DataNascimento = val },
                             { "data de falecimento", val => dadosPessoais.DataFalecimento = val },
                             { "local de nascimento", val => dadosPessoais.LocalNascimento = val },
-                            { "área de atuação", val => heroi.AreaAtuacao = val }
+                            { "área de atuação", val => idolo.AreaAtuacao = val }
                         };
 
                         foreach (var kvp in knownLabels)
@@ -149,7 +149,7 @@ namespace ScrappingMockMuseu.Scrapper
                         }
                     }
                     if (!string.IsNullOrWhiteSpace(dadosPessoais.NomeCompleto))
-                        heroi.DadosPessoais.Add(dadosPessoais);
+                        idolo.DadosPessoais.Add(dadosPessoais);
 
                 }
 
@@ -158,32 +158,32 @@ namespace ScrappingMockMuseu.Scrapper
                 try
                 {
                     var img = _driver.FindElement(By.CssSelector("div.heroBox > img"));
-                    heroi.ImagemPersonalidade = img?.GetAttribute("src");
+                    idolo.ImagemPersonalidade = img?.GetAttribute("src");
                 }
                 catch
                 {
-                    heroi.ImagemPersonalidade = null;
+                    idolo.ImagemPersonalidade = null;
                 }
 
                 // Título e textos
                 try
                 {
-                    heroi.TituloTexto = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt > h1")).Text;
+                    idolo.TituloTexto = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt > h1")).Text;
                 }
                 catch
                 {
-                    heroi.TituloTexto = null;
+                    idolo.TituloTexto = null;
                 }
 
                 try
                 {
                     var textos = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt > p"));
                     foreach (var texto in textos)
-                        heroi.Textos.Add(texto.Text.Trim());
+                        idolo.Textos.Add(texto.Text.Trim());
                 }
                 catch
                 {
-                    heroi.Textos = null;
+                    idolo.Textos = null;
                 }
 
                 // Galeria de imagens
@@ -195,7 +195,7 @@ namespace ScrappingMockMuseu.Scrapper
                         var img = imagem.FindElement(By.CssSelector("img"));
                         var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
 
-                        heroi.Imagens.Add(new Image
+                        idolo.Imagens.Add(new Image
                         {
                             Url = img.GetAttribute("src"),
                             Descricao = legenda
@@ -204,7 +204,7 @@ namespace ScrappingMockMuseu.Scrapper
                 }
                 catch
                 {
-                    heroi.Imagens = null;
+                    idolo.Imagens = null;
                 }
 
                 // Iframes (YouTube e Instagram)
@@ -215,15 +215,15 @@ namespace ScrappingMockMuseu.Scrapper
                     {
                         var src = iframe.GetAttribute("src");
                         if (src.Contains("instagram", StringComparison.OrdinalIgnoreCase))
-                            heroi.InstagramIframes.Add(src);
+                            idolo.InstagramIframes.Add(src);
                         else if (src.Contains("youtube", StringComparison.OrdinalIgnoreCase) || src.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
-                            heroi.YoutubeIframes.Add(src);
+                            idolo.YoutubeIframes.Add(src);
                     }
                 }
                 catch
                 {
-                    heroi.InstagramIframes = null;
-                    heroi.YoutubeIframes = null;
+                    idolo.InstagramIframes = null;
+                    idolo.YoutubeIframes = null;
                 }
             }
             catch (Exception ex)
@@ -232,7 +232,7 @@ namespace ScrappingMockMuseu.Scrapper
                 return null;
             }
 
-            return heroi;
+            return idolo;
         }
 
         private string GetField(string text, string label)
