@@ -62,12 +62,12 @@ namespace ScrappingMockIdolos.Scrapper
 
                 int countNomeCompleto = Regex.Matches(fullText, @"(?i)nome completo").Count;
 
-                bool containsMultiple = paragrafos.Any(p => Regex.IsMatch(p.Text, @"\([^)]+\)")); // crude check for aliases in parentheses
+                bool containsMultiple = paragrafos.Any(p => Regex.IsMatch(p.Text, @"\([^)]+\)"));
 
                 bool isTeam = paragrafos.Count > 2 && paragrafos[0].Text.Trim().StartsWith("O time", StringComparison.OrdinalIgnoreCase);
                 if (isTeam)
                 {
-                    for (int i = 1; i < paragrafos.Count; i++) // skip the title line
+                    for (int i = 1; i < paragrafos.Count; i++)
                     {
                         string nome = paragrafos[i].Text.Trim();
                         if (!string.IsNullOrWhiteSpace(nome))
@@ -86,8 +86,6 @@ namespace ScrappingMockIdolos.Scrapper
                     {
                         var rawText = p.Text;
 
-                        // Match something like:
-                        // "Antonio Rebello Junior (Engole Garfo)\nNascimento: 22/02/1906 – Rio de Janeiro/RJ – Brasil"
                         var match = Regex.Match(rawText,
                         @"^(?<nome>.+?)\s*\((?<apelido>[^)]+)\)\s*(?:<br>)?\s*Nascimento[:>]\s*(?<nascimento>[\d/]+)\s*[-–]\s*(?<local>.+?)(?:\s*<br>?\s*Falecimento[:>]\s*(?<falecimento>[\d/]+))?$",
                         RegexOptions.IgnoreCase);
@@ -120,7 +118,6 @@ namespace ScrappingMockIdolos.Scrapper
 
                     var dadosPessoais = new DadosPessoais();
 
-                    // fallback: original single-hero logic
                     foreach (var p in paragrafos)
                     {
                         string rawText = p.Text;
@@ -152,8 +149,6 @@ namespace ScrappingMockIdolos.Scrapper
 
                 }
 
-
-                // Imagem do herói
                 try
                 {
                     var img = _driver.FindElement(By.CssSelector("div.heroBox > img"));
@@ -164,7 +159,6 @@ namespace ScrappingMockIdolos.Scrapper
                     idolo.ImagemPersonalidade = null;
                 }
 
-                // Título e textos
                 try
                 {
                     idolo.TituloTexto = _driver.FindElement(By.CssSelector("div.infoBox.fullWidth.stdCnt > h1")).Text;
@@ -186,7 +180,6 @@ namespace ScrappingMockIdolos.Scrapper
                     idolo.Textos = null;
                 }
 
-                // Galeria de imagens
                 try
                 {
                     var imagens = _driver.FindElements(By.CssSelector("dl.gallery-item.slick-slide"));
@@ -212,7 +205,6 @@ namespace ScrappingMockIdolos.Scrapper
                     idolo.Imagens = null;
                 }
 
-                // Iframes (YouTube e Instagram)
                 try
                 {
                     var iframes = _driver.FindElements(By.CssSelector("div.infoBox.fullWidth.stdCnt iframe"));

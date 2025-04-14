@@ -47,10 +47,8 @@ namespace ScrappingMockPersonalidades.Scrapper
 
         private Personalidade ObterDadosPersonalidade(string url)
         {
-            // Increase page load timeout (e.g., 3 minutes)
             _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
 
-            // Increase asynchronous JavaScript timeout (e.g., 2 minutes)
             _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
 
             _driver.Navigate().GoToUrl(url);
@@ -67,12 +65,12 @@ namespace ScrappingMockPersonalidades.Scrapper
 
                 int countNomeCompleto = Regex.Matches(fullText, @"(?i)nome completo").Count;
 
-                bool containsMultiple = paragrafos.Any(p => Regex.IsMatch(p.Text, @"\([^)]+\)")); // crude check for aliases in parentheses
+                bool containsMultiple = paragrafos.Any(p => Regex.IsMatch(p.Text, @"\([^)]+\)"));
 
                 bool isTeam = paragrafos.Count > 2 && paragrafos[0].Text.Trim().StartsWith("O time", StringComparison.OrdinalIgnoreCase);
                 if (isTeam)
                 {
-                    for (int i = 1; i < paragrafos.Count; i++) // skip the title line
+                    for (int i = 1; i < paragrafos.Count; i++)
                     {
                         string nome = paragrafos[i].Text.Trim();
                         if (!string.IsNullOrWhiteSpace(nome))
@@ -102,7 +100,6 @@ namespace ScrappingMockPersonalidades.Scrapper
                             {
                                 if (!string.IsNullOrWhiteSpace(dadosTemp.NomeCompleto))
                                 {
-                                    // Already filled a person, save and start new
                                     personalidade.DadosPessoais.Add(dadosTemp);
                                     dadosTemp = new DadosPessoais();
                                 }
@@ -124,13 +121,11 @@ namespace ScrappingMockPersonalidades.Scrapper
                             else if (line.StartsWith("Área de atuação", StringComparison.OrdinalIgnoreCase))
                             {
                                 personalidade.AreaAtuacao = GetField(line, "Área de atuação");
-                                // Save the last one
                                 if (!string.IsNullOrWhiteSpace(dadosTemp.NomeCompleto))
                                     personalidade.DadosPessoais.Add(dadosTemp);
                             }
                         }
 
-                        // Catch any leftovers
                         if (!string.IsNullOrWhiteSpace(dadosTemp.NomeCompleto) &&
                             !personalidade.DadosPessoais.Any(d => d.NomeCompleto == dadosTemp.NomeCompleto))
                         {
@@ -148,21 +143,18 @@ namespace ScrappingMockPersonalidades.Scrapper
                         var html = p.GetAttribute("innerHTML");
                         if (string.IsNullOrWhiteSpace(html)) continue;
 
-                        // Normalize <br> tags
                         var parts = Regex.Split(html, @"<br\s*/?>", RegexOptions.IgnoreCase);
 
                         foreach (var part in parts)
                         {
                             if (string.IsNullOrWhiteSpace(part)) continue;
 
-                            // Extract label and value
                             var labelMatch = Regex.Match(part, @"<strong>(.*?)<\/strong>", RegexOptions.IgnoreCase);
                             if (!labelMatch.Success) continue;
 
                             var rawLabel = labelMatch.Groups[1].Value;
                             var label = Regex.Replace(rawLabel, "<.*?>", "").Trim().Trim(':').ToLower();
 
-                            // Remove the <strong> part to get the value
                             var value = Regex.Replace(part, @"<strong>.*?<\/strong>", "", RegexOptions.IgnoreCase).Trim();
                             value = Regex.Replace(value, "<.*?>", "").Trim();
 
@@ -207,13 +199,11 @@ namespace ScrappingMockPersonalidades.Scrapper
                         string label = "";
                         string value = "";
 
-                        // Extract content from <strong>...</strong> as label
                         var labelMatch = Regex.Match(rawHtml, @"<strong>(.*?)<\/strong>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
                         if (labelMatch.Success)
                         {
                             label = Regex.Replace(labelMatch.Groups[1].Value, "<.*?>", "").Trim(':', ' ', '\n', '\r').ToLower();
 
-                            // Remove the <strong> part from innerHTML to get value
                             value = Regex.Replace(rawHtml, @"<strong>.*?<\/strong>", "", RegexOptions.Singleline).Trim();
                             value = Regex.Replace(value, "<.*?>", "").Trim();
                         }
@@ -255,15 +245,13 @@ namespace ScrappingMockPersonalidades.Scrapper
                 return null;
             }
 
-            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // Ajuste o tempo conforme necessário
+            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
             try
             {
                 wait.Until(driver => driver.FindElements(By.CssSelector(".slick-track img")).Count > 0);
 
-                // Get all <img> elements inside the slick-track
                 var imgElements = _driver.FindElements(By.CssSelector(".slick-track img"));
 
-                // Use HashSet to avoid duplicates from cloned slides
                 var imageUrls = new HashSet<string>();
 
                 foreach (var img in imgElements)
@@ -408,7 +396,7 @@ namespace ScrappingMockPersonalidades.Scrapper
             if (string.IsNullOrWhiteSpace(input)) return null;
 
             return System.Net.WebUtility.HtmlDecode(input)
-                .Replace("\u00A0", " ") // Replace non-breaking spaces
+                .Replace("\u00A0", " ")
                 .Replace("&nbsp;", " ")
                 .Trim();
         }

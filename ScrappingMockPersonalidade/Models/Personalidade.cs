@@ -15,7 +15,7 @@ namespace ScrappingMockPersonalidades.Models
         public string TituloTexto { get; set; }
         public List<string> Textos { get; set; } = new();
         public HashSet<Imagem> Imagens { get; set; } = new();
-        public List<Imagem> ImagemTexto { get; set; } = new(); //Só no Hebert Vianna, onde tem uma reportagem
+        public List<Imagem> ImagemTexto { get; set; } = new();
         public List<Imagem> SaibaMais { get; set; } = new();
         public List<string> YoutubeIframes { get; set; } = new();
     }

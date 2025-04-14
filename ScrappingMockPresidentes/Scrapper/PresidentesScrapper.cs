@@ -46,10 +46,8 @@ namespace ScrappingMockPresidentes.Scrapper
 
         private Presidente ObterDadosPresidente(string url)
         {
-            // Increase page load timeout (e.g., 3 minutes)
             _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
 
-            // Increase asynchronous JavaScript timeout (e.g., 2 minutes)
             _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
 
             _driver.Navigate().GoToUrl(url);
@@ -70,7 +68,6 @@ namespace ScrappingMockPresidentes.Scrapper
                     {
                         var labelElements = p.FindElements(By.CssSelector("strong, b"));
 
-                        // Pick the first label element that has text
                         var labelElement = labelElements.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e.Text));
 
                         if (labelElement != null)
@@ -82,14 +79,12 @@ namespace ScrappingMockPresidentes.Scrapper
                         }
                         else
                         {
-                            // No valid label, treat as continuation
                             value = p.Text.Trim();
                             label = lastLabel;
                         }
                     }
                     catch (Exception ex)
                     {
-                        // Something weird? Skip.
                         Console.WriteLine($"Erro ao processar parágrafo: {ex.Message}");
                         continue;
                     }
@@ -118,7 +113,7 @@ namespace ScrappingMockPresidentes.Scrapper
                 return null;
             }
 
-            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // Ajuste o tempo conforme necessário
+            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
             try { 
                 IWebElement imgElement = wait.Until(driver => driver.FindElement(By.CssSelector("div.imagem img")));
                 var src = imgElement.GetAttribute("src");

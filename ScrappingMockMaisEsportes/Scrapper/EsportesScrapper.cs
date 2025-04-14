@@ -50,39 +50,35 @@ namespace ScrappingMockMaisEsportes.Scrapper
 
             try
             {
-                // Get the name of the sport
                 esporte.Nome = _driver.FindElement(By.CssSelector("body > div.container > div > div.lado_lado.heroBox > div.texto.titulo-sublinhado.titulo-sublinhado-vermelho > div > h1")).Text;
 
-                // Get the year (extract the number from the text)
                 try
                 {
                     var anoElement = _driver.FindElement(By.CssSelector("body > div.container > div > div.lado_lado.heroBox > div.texto.titulo-sublinhado.titulo-sublinhado-vermelho > div > p"));
                     var anoText = anoElement.Text;
 
-                    // Use regex to extract the year number
-                    var match = Regex.Match(anoText, @"\d{4}"); // Match any 4-digit number
+                    var match = Regex.Match(anoText, @"\d{4}");
                     if (match.Success)
                     {
                         esporte.Ano = match.Value;
                     }
                     else
                     {
-                        esporte.Ano = null; // In case no year is found
+                        esporte.Ano = null;
                     }
                 }
                 catch (NoSuchElementException)
                 {
-                    esporte.Ano = null; // Set a default value if <p> is not found
+                    esporte.Ano = null;
                 }
 
-                // Get images and extract athlete names from the alt attribute
                 var imagens = _driver.FindElements(By.CssSelector("div.carrossel.carrosselIMG img"));
                 foreach (var img in imagens)
                 {
                     var novaImagem = new Imagem
                     {
                         Url = img.GetAttribute("src"),
-                        Descricao = img.GetAttribute("alt") // Assuming the alt text contains athlete names
+                        Descricao = img.GetAttribute("alt")
                     };
                     if (!esporte.Imagens.Contains(novaImagem))
                     {
@@ -90,19 +86,15 @@ namespace ScrappingMockMaisEsportes.Scrapper
                     }
                 }
 
-                // Get the Textos (descriptions)
                 var textos = _driver.FindElements(By.CssSelector("div.fullWidth.min-padding.sobre.stdCnt > p"));
                 foreach (var texto in textos)
                 {
                     var textoContent = texto.Text.Trim();
 
-                    // Check if the text contains "Saiba mais", and remove it
                     if (textoContent.Contains("Saiba mais"))
                     {
-                        // Extract the URL for "Saiba mais"
                         var saibaMaisUrl = textoContent.Replace("Saiba mais: ", "").Trim();
 
-                        // Add the URL to the SaibaMais list
                         var imagem = new Imagem
                         {
                             Url = saibaMaisUrl,
@@ -112,7 +104,6 @@ namespace ScrappingMockMaisEsportes.Scrapper
                     }
                     else
                     {
-                        // Only add the text to the Textos list
                         if (textoContent.Trim() != "")
                             esporte.Textos.Add(textoContent);
                     }
