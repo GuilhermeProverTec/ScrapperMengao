@@ -194,11 +194,16 @@ namespace ScrappingMockIdolos.Scrapper
                         var img = imagem.FindElement(By.CssSelector("img"));
                         var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
 
-                        idolo.Imagens.Add(new Image
+                        var novaImagem = new Imagem
                         {
                             Url = img.GetAttribute("src"),
                             Descricao = legenda
-                        });
+                        };
+
+                        if (!idolo.Imagens.Contains(novaImagem))
+                        {
+                            idolo.Imagens.Add(novaImagem);
+                        }
                     }
                 }
                 catch

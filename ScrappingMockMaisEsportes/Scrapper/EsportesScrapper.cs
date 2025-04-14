@@ -79,12 +79,15 @@ namespace ScrappingMockMaisEsportes.Scrapper
                 var imagens = _driver.FindElements(By.CssSelector("div.carrossel.carrosselIMG img"));
                 foreach (var img in imagens)
                 {
-                    var imagem = new Imagem
+                    var novaImagem = new Imagem
                     {
                         Url = img.GetAttribute("src"),
                         Descricao = img.GetAttribute("alt") // Assuming the alt text contains athlete names
                     };
-                    esporte.Imagem.Add(imagem);
+                    if (!esporte.Imagens.Contains(novaImagem))
+                    {
+                        esporte.Imagens.Add(novaImagem);
+                    }
                 }
 
                 // Get the Textos (descriptions)

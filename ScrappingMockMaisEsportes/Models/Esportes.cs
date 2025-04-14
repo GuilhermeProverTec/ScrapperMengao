@@ -10,7 +10,7 @@ namespace ScrappingMockMaisEsportes.Models
     {
         public string Nome { get; set; }
         public string Ano { get; set; }
-        public List<Imagem> Imagem { get; set; } = new();
+        public HashSet<Imagem> Imagens { get; set; } = new();
         public List<string> Textos { get; set; } = new();
         public List<Imagem> SaibaMais { get; set; } = new();
     }
@@ -19,5 +19,17 @@ namespace ScrappingMockMaisEsportes.Models
     {
         public string Url { get; set; }
         public string Descricao { get; set; }
+        public override bool Equals(object obj)
+        {
+            return obj is Imagem other &&
+                   string.Equals(Url, other.Url, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(
+                Url?.ToLowerInvariant()
+            );
+        }
     }
 }

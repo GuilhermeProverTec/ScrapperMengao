@@ -8,7 +8,7 @@ class Program
 
         var scraper = new IdolosScrapper();
         var idolos = scraper.ObterIdolos();
-        scraper.SalvarIdolosComoJson(idolos, "Basquete/basquete.json");
+        scraper.SalvarIdolosComoJson(idolos, "Json/basquete.json");
 
         //foreach (var h in herois)
         //{

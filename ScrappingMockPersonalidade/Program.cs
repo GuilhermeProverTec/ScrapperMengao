@@ -8,7 +8,7 @@ class Program
 
         var scraper = new PersonalidadesScrapper();
         var personalidades = scraper.ObterPersonalidades();
-        scraper.SalvarPersonalidadesComoJson(personalidades, "Personalidades/personalidades.json");
+        scraper.SalvarPersonalidadesComoJson(personalidades, "Json/personalidades.json");
 
         //foreach (var h in herois)
         //{

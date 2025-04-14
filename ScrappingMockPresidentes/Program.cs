@@ -8,7 +8,7 @@ class Program
 
         var scraper = new PresidentesScrapper();
         var presidentes = scraper.ObterPresidentes();
-        scraper.SalvarPresidentesComoJson(presidentes, "esportes.json");
+        scraper.SalvarPresidentesComoJson(presidentes, "Json/presidentes.json");
 
         //foreach (var h in herois)
         //{

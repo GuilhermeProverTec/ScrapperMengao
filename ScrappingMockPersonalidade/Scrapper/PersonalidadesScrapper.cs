@@ -111,11 +111,11 @@ namespace ScrappingMockPersonalidades.Scrapper
                             }
                             else if (line.StartsWith("Data de nascimento", StringComparison.OrdinalIgnoreCase))
                             {
-                                dadosTemp.DataNascimento = GetField(line, "Data de nascimento");
+                                dadosTemp.DataNascimento = CleanText(GetField(line, "Data de nascimento"));
                             }
                             else if (line.StartsWith("Data de falecimento", StringComparison.OrdinalIgnoreCase))
                             {
-                                dadosTemp.DataFalecimento = GetField(line, "Data de falecimento");
+                                dadosTemp.DataFalecimento = CleanText(GetField(line, "Data de falecimento"));
                             }
                             else if (line.StartsWith("Local de nascimento", StringComparison.OrdinalIgnoreCase))
                             {
@@ -166,8 +166,6 @@ namespace ScrappingMockPersonalidades.Scrapper
                             var value = Regex.Replace(part, @"<strong>.*?<\/strong>", "", RegexOptions.IgnoreCase).Trim();
                             value = Regex.Replace(value, "<.*?>", "").Trim();
 
-                            Console.WriteLine($"[INLINE] Found: {label} => {value}");
-
                             switch (label)
                             {
                                 case "nome":
@@ -175,10 +173,10 @@ namespace ScrappingMockPersonalidades.Scrapper
                                     dadosPessoais.NomeCompleto = value;
                                     break;
                                 case "data de nascimento":
-                                    dadosPessoais.DataNascimento = value;
+                                    dadosPessoais.DataNascimento = CleanText(value);
                                     break;
                                 case "data de falecimento":
-                                    dadosPessoais.DataFalecimento = value;
+                                    dadosPessoais.DataFalecimento = CleanText(value);
                                     break;
                                 case "local de nascimento":
                                     dadosPessoais.LocalNascimento = value;
@@ -229,10 +227,10 @@ namespace ScrappingMockPersonalidades.Scrapper
                                 dadosPessoais.NomeCompleto = value;
                                 break;
                             case "data de nascimento":
-                                dadosPessoais.DataNascimento = value;
+                                dadosPessoais.DataNascimento = CleanText(value);
                                 break;
                             case "data de falecimento":
-                                dadosPessoais.DataFalecimento = value;
+                                dadosPessoais.DataFalecimento = CleanText(value);
                                 break;
                             case "local de nascimento":
                                 dadosPessoais.LocalNascimento = value;
@@ -324,12 +322,18 @@ namespace ScrappingMockPersonalidades.Scrapper
                 var imagens = _driver.FindElements(By.CssSelector("dl.gallery-item.slick-slide"));
                 foreach (var imagem in imagens)
                 {
-                    var imageElement = imagem.FindElement(By.CssSelector("img"));
-                    personalidade.Imagens.Add(new Imagem
+                    var img = imagem.FindElement(By.CssSelector("img"));
+                    var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
+                    var novaImagem = new Imagem
                     {
-                        Url = imageElement.GetAttribute("src"),
-                        Legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim()
-                    });
+                        Url = img.GetAttribute("src"),
+                        Legenda = legenda
+                    };
+
+                    if (!personalidade.Imagens.Contains(novaImagem))
+                    {
+                        personalidade.Imagens.Add(novaImagem);
+                    }
                 }
             }
             catch (Exception e)
@@ -396,6 +400,16 @@ namespace ScrappingMockPersonalidades.Scrapper
             }
 
             return text.Substring(start, end - start).Trim(':', '-', ' ', '\n', '\r');
+        }
+
+        private string CleanText(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+
+            return System.Net.WebUtility.HtmlDecode(input)
+                .Replace("\u00A0", " ") // Replace non-breaking spaces
+                .Replace("&nbsp;", " ")
+                .Trim();
         }
     }
 }

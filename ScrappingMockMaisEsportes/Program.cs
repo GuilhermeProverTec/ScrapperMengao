@@ -8,7 +8,7 @@ class Program
 
         var scraper = new EsportesScrapper();
         var esportes = scraper.ObterEsportes();
-        scraper.SalvarEsportesComoJson(esportes, "MaisEsportes/maisEsportes.json");
+        scraper.SalvarEsportesComoJson(esportes, "Json/maisEsportes.json");
 
         //foreach (var h in herois)
         //{

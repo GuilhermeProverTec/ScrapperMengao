@@ -14,7 +14,7 @@ namespace ScrappingMockPersonalidades.Models
         public List<string> ImagemPersonalidade { get; set; } = new();
         public string TituloTexto { get; set; }
         public List<string> Textos { get; set; } = new();
-        public List<Imagem> Imagens { get; set; } = new();
+        public HashSet<Imagem> Imagens { get; set; } = new();
         public List<Imagem> ImagemTexto { get; set; } = new(); //Só no Hebert Vianna, onde tem uma reportagem
         public List<Imagem> SaibaMais { get; set; } = new();
         public List<string> YoutubeIframes { get; set; } = new();
@@ -32,5 +32,17 @@ namespace ScrappingMockPersonalidades.Models
     {
         public string Url { get; set; }
         public string Legenda { get; set; }
+        public override bool Equals(object obj)
+        {
+            return obj is Imagem other &&
+                   string.Equals(Url, other.Url, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(
+                Url?.ToLowerInvariant()
+            );
+        }
     }
 }

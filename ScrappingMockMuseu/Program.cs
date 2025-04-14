@@ -1,4 +1,4 @@
-﻿using ScrappingMockMuseu.Scrapper;
+﻿using ScrappingMockHeroi.Scrapper;
 
 class Program
 {
@@ -6,9 +6,9 @@ class Program
     {
         Console.WriteLine("Iniciando scraping dos heróis...");
 
-        var scraper = new EsportesScrapper();
+        var scraper = new HeroiScrapper();
         var herois = scraper.ObterHerois();
-        scraper.SalvarHeroisComoJson(herois, "esportes.json");
+        scraper.SalvarHeroisComoJson(herois, "Json/herois.json");
 
         //foreach (var h in herois)
         //{

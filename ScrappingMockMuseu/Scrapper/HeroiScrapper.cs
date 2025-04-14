@@ -1,9 +1,11 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using ScrappingMockMuseu.Models;
+using ScrappingMockHeroi.Models;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-namespace ScrappingMockMuseu.Scrapper
+
+
+namespace ScrappingMockHeroi.Scrapper
 {
     public class HeroiScrapper
     {
@@ -65,7 +67,7 @@ namespace ScrappingMockMuseu.Scrapper
 
                 bool containsMultiple = paragrafos.Any(p => Regex.IsMatch(p.Text, @"\([^)]+\)")); // crude check for aliases in parentheses
 
-                bool isTeam = paragrafos.Count > 2 && paragrafos[0].Text.Trim().StartsWith("O time", StringComparison.OrdinalIgnoreCase);
+                bool isTeam = paragrafos.Count > 2 && (paragrafos[0].Text.Trim().StartsWith("O time", StringComparison.OrdinalIgnoreCase));
                 if (isTeam)
                 {
                     for (int i = 1; i < paragrafos.Count; i++) // skip the title line
@@ -78,7 +80,76 @@ namespace ScrappingMockMuseu.Scrapper
                                 NomeCompleto = nome
                             });
                         }
-                    }                }
+                    }                
+                }
+
+                else if (Regex.IsMatch(fullText, @"Quem são[:\s]*", RegexOptions.IgnoreCase))
+                {
+                    DadosPessoais current = null;
+                    bool lastLineWasAreaAtuacao = false;
+
+                    foreach (var p in paragrafos)
+                    {
+                        var lines = p.Text.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var lineRaw in lines)
+                        {
+                            var raw = lineRaw.Trim().Trim('"').Trim();
+
+                            if (string.IsNullOrWhiteSpace(raw))
+                                continue;
+
+                            // Handle "Área de atuação" line and its value on next line
+                            if (raw.StartsWith("Área de atuação", StringComparison.OrdinalIgnoreCase))
+                            {
+                                lastLineWasAreaAtuacao = true;
+                                continue; // wait for next line to get the value
+                            }
+
+                            if (lastLineWasAreaAtuacao)
+                            {
+                                heroi.AreaAtuacao = raw;
+                                lastLineWasAreaAtuacao = false;
+                                continue;
+                            }
+
+                            // Detect a name line (no colon, not part of known keywords)
+                            if (!raw.Contains(":"))
+                            {
+                                if (current != null)
+                                    heroi.DadosPessoais.Add(current);
+
+                                current = new DadosPessoais
+                                {
+                                    NomeCompleto = raw
+                                };
+                            }
+                            else if (raw.StartsWith("Nascimento", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var nascimento = Regex.Match(raw, @"Nascimento[:\s]+([\d/]+)");
+                                if (nascimento.Success && current != null)
+                                    current.DataNascimento = nascimento.Groups[1].Value.Trim();
+                            }
+                            else if (raw.StartsWith("Local de Nascimento", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var local = Regex.Match(raw, @"Local de Nascimento[:\s]+(.+)");
+                                if (local.Success && current != null)
+                                    current.LocalNascimento = local.Groups[1].Value.Trim();
+                            }
+                            else if (raw.StartsWith("Falecimento", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var falecimento = Regex.Match(raw, @"Falecimento[:\s]+(.+)");
+                                if (falecimento.Success && current != null)
+                                    current.DataFalecimento = falecimento.Groups[1].Value.Trim();
+                            }
+                        }
+                    }
+
+                    if (current != null)
+                        heroi.DadosPessoais.Add(current);
+                }
+
+
 
 
                 else if (containsMultiple)
@@ -195,11 +266,16 @@ namespace ScrappingMockMuseu.Scrapper
                         var img = imagem.FindElement(By.CssSelector("img"));
                         var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
 
-                        heroi.Imagens.Add(new Image
+                        var novaImagem = new Imagem
                         {
                             Url = img.GetAttribute("src"),
                             Descricao = legenda
-                        });
+                        };
+
+                        if (!heroi.Imagens.Contains(novaImagem))
+                        {
+                            heroi.Imagens.Add(novaImagem);
+                        }
                     }
                 }
                 catch
