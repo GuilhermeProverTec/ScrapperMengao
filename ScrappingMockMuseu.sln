@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockBasquete", "Sc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockRemo", "ScrappingMockRemo\ScrappingMockRemo.csproj", "{C9C3642E-2C25-47E7-807B-937016BB570D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockArquibancada", "ScrappingMockArquibancada\ScrappingMockArquibancada.csproj", "{6099419A-B61E-47C0-B47F-5EE24338C200}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{C9C3642E-2C25-47E7-807B-937016BB570D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9C3642E-2C25-47E7-807B-937016BB570D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9C3642E-2C25-47E7-807B-937016BB570D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6099419A-B61E-47C0-B47F-5EE24338C200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6099419A-B61E-47C0-B47F-5EE24338C200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6099419A-B61E-47C0-B47F-5EE24338C200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6099419A-B61E-47C0-B47F-5EE24338C200}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
