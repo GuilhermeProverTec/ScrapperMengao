@@ -15,3 +15,4 @@ Os projetos disponíveis são:
 - Basquete -> Ídolos
 - Remo -> Ídolos
 - Outros Esportes -> Outros Esportes
+- Torcida -> Arquibancada Rubro Negra
