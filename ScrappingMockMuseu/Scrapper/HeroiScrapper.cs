@@ -252,11 +252,12 @@ namespace ScrappingMockHeroi.Scrapper
 
                 try
                 {
-                    var imagens = _driver.FindElements(By.CssSelector("dl.gallery-item.slick-slide"));
+                    var imagens = _driver.FindElements(By.CssSelector("dl.gallery-item.slick-slide:not(.slick-cloned)"));
                     foreach (var imagem in imagens)
                     {
                         var img = imagem.FindElement(By.CssSelector("img"));
-                        var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
+                        var legendaElement = imagem.FindElement(By.CssSelector("dd.wp-caption-text.gallery-caption"));
+                        var legenda = legendaElement.GetAttribute("textContent")?.Trim();
 
                         var novaImagem = new Imagem
                         {
@@ -291,6 +292,27 @@ namespace ScrappingMockHeroi.Scrapper
                 {
                     heroi.InstagramIframes = null;
                     heroi.YoutubeIframes = null;
+                }
+                try
+                {
+                    var maisHerois = _driver.FindElements(By.CssSelector(".cardHolder:not(.slick-cloned)"));
+                    foreach(var maisHeroi in maisHerois)
+                    {
+                        var urlNovoHeroi = maisHeroi.FindElement(By.CssSelector("a.card")).GetAttribute("href");
+                        var imagemNovoHeroi = maisHeroi.FindElement(By.TagName("img")).GetAttribute("src");
+
+                        var novoMaisHeroi = new MaisHerois
+                        {
+                            Url = urlNovoHeroi,
+                            Imagem = imagemNovoHeroi,
+                        };
+
+                        heroi.MaisHerois.Add(novoMaisHeroi);
+                    }
+                }
+                catch
+                {
+                    heroi.MaisHerois = null;
                 }
             }
             catch (Exception ex)
