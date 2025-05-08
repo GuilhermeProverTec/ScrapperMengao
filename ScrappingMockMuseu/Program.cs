@@ -4,12 +4,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Iniciando scraping dos heróis...");
+        Console.WriteLine($"Iniciando scraping dos heróis...\n{DateTime.Now}");
 
         var scraper = new HeroiScrapper();
         var herois = scraper.ObterHerois();
         scraper.SalvarHeroisComoJson(herois, "Json/HeroisDaNacao.json");
 
-        Console.WriteLine($"\nTotal de heróis encontrados: {herois.Count}");
+        Console.WriteLine($"\nTotal de heróis encontrados: {herois.Count}\n{DateTime.Now}");
     }
 }

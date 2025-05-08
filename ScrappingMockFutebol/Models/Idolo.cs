@@ -11,6 +11,7 @@
         public List<string> InstagramIframes { get; set; } = new();
         public List<string> YoutubeIframes { get; set; } = new();
         public HashSet<Imagem> Imagens { get; set; } = new();
+        public List<MaisHerois> MaisHerois { get; set; } = new();
 
     }
 
@@ -21,6 +22,12 @@
         public string DataNascimento { get; set; }
         public string LocalNascimento { get; set; }
         public string DataFalecimento { get; set; }
+    }
+
+    public class MaisHerois
+    {
+        public string? Url { get; set; }
+        public string? Imagem { get; set; }
     }
 
     public class Imagem

@@ -349,16 +349,20 @@ namespace ScrappingMockArquibancada.Scrapper
 
                         // Imagens do carrossel dentro da torcida
                         var imagensTorcida = new HashSet<Imagem>();
-                        var carrosselImgs = section.FindElements(By.CssSelector(".gallery img"));
-                        foreach (var img in carrosselImgs)
+                        var carrosselImgsTorcida = section.FindElements(By.CssSelector("dl.gallery-item.slick-slide:not(.slick-cloned)"));
+
+                        foreach (var img in carrosselImgsTorcida)
                         {
-                            var src = img.GetAttribute("src");
+                            var src = img.FindElement(By.CssSelector("img")).GetAttribute("src");
+                            var legendaElement = img.FindElement(By.CssSelector("dd.wp-caption-text.gallery-caption"));
+                            var legenda = legendaElement.GetAttribute("textContent")?.Trim();
+
                             if (!string.IsNullOrEmpty(src))
                             {
                                 imagensTorcida.Add(new Imagem
                                 {
                                     Url = src,
-                                    Alt = img.GetAttribute("alt")
+                                    Alt = legenda
                                 });
                             }
                         }

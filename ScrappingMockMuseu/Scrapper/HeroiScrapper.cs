@@ -298,12 +298,28 @@ namespace ScrappingMockHeroi.Scrapper
                     var maisHerois = _driver.FindElements(By.CssSelector(".cardHolder:not(.slick-cloned)"));
                     foreach(var maisHeroi in maisHerois)
                     {
-                        var urlNovoHeroi = maisHeroi.FindElement(By.CssSelector("a.card")).GetAttribute("href");
+                        var card = maisHeroi.FindElement(By.CssSelector("a.card"));
+                        var urlNovoHeroi = card.GetAttribute("href");
                         var imagemNovoHeroi = maisHeroi.FindElement(By.TagName("img")).GetAttribute("src");
+                        var infoNovoHeroi = card.FindElement(By.CssSelector("span")).GetAttribute("innerHTML");
+
+                        string nome = null;
+                        string areaAtuacao = null;
+
+                        // Simple regex to match the pattern: <b>Nome</b>Área
+                        var match = Regex.Match(infoNovoHeroi, @"<b>(.*?)<\/b>(.*)");
+
+                        if (match.Success)
+                        {
+                            nome = match.Groups[1].Value.Trim();
+                            areaAtuacao = match.Groups[2].Value.Trim();
+                        }
 
                         var novoMaisHeroi = new MaisHerois
                         {
-                            Url = urlNovoHeroi,
+                            Nome = nome,
+                            AreaAtuacao = areaAtuacao,
+                            Url = nome,
                             Imagem = imagemNovoHeroi,
                         };
 

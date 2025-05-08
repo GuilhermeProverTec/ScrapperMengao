@@ -186,7 +186,8 @@ namespace ScrappingMockIdolos.Scrapper
                     foreach (var imagem in imagens)
                     {
                         var img = imagem.FindElement(By.CssSelector("img"));
-                        var legenda = imagem.FindElement(By.CssSelector("dd.gallery-caption")).Text.Trim();
+                        var legendaElement = imagem.FindElement(By.CssSelector("dd.wp-caption-text.gallery-caption"));
+                        var legenda = legendaElement.GetAttribute("textContent")?.Trim();
 
                         var novaImagem = new Imagem
                         {
@@ -221,6 +222,27 @@ namespace ScrappingMockIdolos.Scrapper
                 {
                     idolo.InstagramIframes = null;
                     idolo.YoutubeIframes = null;
+                }
+                try
+                {
+                    var maisHerois = _driver.FindElements(By.CssSelector(".cardHolder:not(.slick-cloned)"));
+                    foreach (var maisHeroi in maisHerois)
+                    {
+                        var urlNovoHeroi = maisHeroi.FindElement(By.CssSelector("a.card")).GetAttribute("href");
+                        var imagemNovoHeroi = maisHeroi.FindElement(By.TagName("img")).GetAttribute("src");
+
+                        var novoMaisHeroi = new MaisHerois
+                        {
+                            Url = urlNovoHeroi,
+                            Imagem = imagemNovoHeroi,
+                        };
+
+                        idolo.MaisHerois.Add(novoMaisHeroi);
+                    }
+                }
+                catch
+                {
+                    idolo.MaisHerois = null;
                 }
             }
             catch (Exception ex)
