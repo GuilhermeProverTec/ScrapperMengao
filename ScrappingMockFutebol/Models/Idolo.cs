@@ -26,6 +26,8 @@
 
     public class MaisHerois
     {
+        public string? Nome { get; set; }
+        public string? AreaAtuacao { get; set; }
         public string? Url { get; set; }
         public string? Imagem { get; set; }
     }
