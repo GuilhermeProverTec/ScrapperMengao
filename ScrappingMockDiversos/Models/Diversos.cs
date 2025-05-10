@@ -1,16 +1,22 @@
-﻿namespace ScrappingMockVestimentas.Models
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ScrappingMockDiversos.Models
 {
-    public class CatalogoVestimenta
+    public class CatalogoDiversos
     {
         public InformacoesCatalogo Info { get; set; } = new();
-        public List<Vestimenta> Vestimentas { get; set; } = []; 
+        public List<Diversos> Diversoss { get; set; } = [];
 
-        public class Vestimenta
+        public class Diversos
         {
             public string Imagem { get; set; }
             public string Url { get; set; }
             public string Nome { get; set; }
-            public Detalhes DetalhesVestimenta { get; set; } = new();
+            public Detalhes DetalhesDiversos { get; set; } = new();
 
             public class Detalhes
             {
@@ -30,7 +36,8 @@
             }
         }
 
-        public class InformacoesCatalogo{ 
+        public class InformacoesCatalogo
+        {
             public string? Icone { get; set; }
             public string? Titulo { get; set; }
             public string? Descricao { get; set; }

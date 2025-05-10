@@ -23,6 +23,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockAcervo", "Scra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockVestimentas", "ScrappingMockVestimentas\ScrappingMockVestimentas.csproj", "{71766075-D1A1-4530-AE01-9E9E9339512F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockBandeirasFaixasFlamulas", "ScrappingMockBandeirasFaixasFlamulas\ScrappingMockBandeirasFaixasFlamulas.csproj", "{EACF1F65-DA5F-4AD5-A151-9D845DFBF36E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockEquipamentosEsportivos", "ScrappingMockEquipamentosEsportivos\ScrappingMockEquipamentosEsportivos.csproj", "{D21608DA-C155-4BC8-817E-93E0E50DD911}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockIconografia", "ScrappingMockIconografia\ScrappingMockIconografia.csproj", "{3F7E08B4-E6D7-4318-9EE0-96F922A77BE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockDiversos", "ScrappingMockDiversos\ScrappingMockDiversos.csproj", "{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +77,22 @@ Global
 		{71766075-D1A1-4530-AE01-9E9E9339512F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71766075-D1A1-4530-AE01-9E9E9339512F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71766075-D1A1-4530-AE01-9E9E9339512F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EACF1F65-DA5F-4AD5-A151-9D845DFBF36E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EACF1F65-DA5F-4AD5-A151-9D845DFBF36E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EACF1F65-DA5F-4AD5-A151-9D845DFBF36E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EACF1F65-DA5F-4AD5-A151-9D845DFBF36E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D21608DA-C155-4BC8-817E-93E0E50DD911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D21608DA-C155-4BC8-817E-93E0E50DD911}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D21608DA-C155-4BC8-817E-93E0E50DD911}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D21608DA-C155-4BC8-817E-93E0E50DD911}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F7E08B4-E6D7-4318-9EE0-96F922A77BE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F7E08B4-E6D7-4318-9EE0-96F922A77BE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F7E08B4-E6D7-4318-9EE0-96F922A77BE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F7E08B4-E6D7-4318-9EE0-96F922A77BE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

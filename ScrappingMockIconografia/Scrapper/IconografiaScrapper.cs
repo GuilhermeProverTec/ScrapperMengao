@@ -1,40 +1,38 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using ScrappingMockVestimentas.Models;
+using ScrappingMockIconografia.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static ScrappingMockVestimentas.Models.CatalogoVestimenta;
-using static System.Formats.Asn1.AsnWriter;
+using static ScrappingMockIconografia.Models.CatalogoIconografia;
 
-namespace ScrappingMockVestimentas.Scrapper
+namespace ScrappingMockIconografia.Scrapper
 {
-    public class VestimentaScrapper
+    public class IconografiaScrapper
     {
         private readonly IWebDriver _driver;
 
-        public VestimentaScrapper()
+        public IconografiaScrapper()
         {
             var options = new ChromeOptions();
             options.AddArgument("--headless");
             _driver = new ChromeDriver(options);
         }
-        public CatalogoVestimenta ObterVestimentas()
+        public CatalogoIconografia ObterIconografias()
         {
-            _driver.Navigate().GoToUrl("https://museuflamengo.com/acervo/tipo/vestimentas");
+            _driver.Navigate().GoToUrl("https://museuflamengo.com/acervo/tipo/iconografia");
 
-            CatalogoVestimenta vestimentas = new CatalogoVestimenta();
+            CatalogoIconografia iconografias = new CatalogoIconografia();
 
-            vestimentas.Info.Titulo = _driver.FindElement(By.CssSelector("div.cabecalho > div > div > h1")).Text.Trim();
+            iconografias.Info.Titulo = _driver.FindElement(By.CssSelector("div.cabecalho > div > div > h1")).Text.Trim();
 
             var style = _driver.FindElement(By.CssSelector("div.cabecalho > div > div > h1")).GetAttribute("style");
             string imageUrl = "https://museuflamengo.com.br" + System.Text.RegularExpressions.Regex.Match(style, @"url\(['""]?(.*?)['""]?\)").Groups[1].Value;
-            vestimentas.Info.Icone = imageUrl;
-            vestimentas.Info.Descricao = _driver.FindElement(By.CssSelector("div.cabecalho > div > div > p")).Text.Trim();
+            iconografias.Info.Icone = imageUrl;
+            iconografias.Info.Descricao = _driver.FindElement(By.CssSelector("div.cabecalho > div > div > p")).Text.Trim();
 
             var hrefs = _driver.FindElements(By.CssSelector("div.itens > div > a"));
 
@@ -50,35 +48,35 @@ namespace ScrappingMockVestimentas.Scrapper
                 urls.Add(href.GetAttribute("href"));
             }
 
-                
-            for(int i = 0; i< urls.Count; i++)
+
+            for (int i = 0; i < urls.Count; i++)
             {
-                vestimentas.Vestimentas.Add(new Vestimenta
+                iconografias.Iconografias.Add(new Iconografia
                 {
                     Nome = names[i],
                     Imagem = images[i],
                     Url = urls[i]
                 });
-                vestimentas.Vestimentas[i].DetalhesVestimenta = ObterDadosVestimenta(urls[i]);
+                iconografias.Iconografias[i].DetalhesIconografia = ObterDadosIconografia(urls[i]);
             }
 
             _driver.Quit();
-            return vestimentas;
+            return iconografias;
         }
 
-        public void SalvarVestimentaComoJson(CatalogoVestimenta vestimentas, string caminho)
+        public void SalvarIconografiaComoJson(CatalogoIconografia iconografias, string caminho)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(vestimentas, options);
+            var json = JsonSerializer.Serialize(iconografias, options);
             File.WriteAllText(caminho, json);
         }
 
-        private Vestimenta.Detalhes ObterDadosVestimenta(string url)
+        private Iconografia.Detalhes ObterDadosIconografia(string url)
         {
             _driver.Navigate().GoToUrl(url);
             _driver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(3);
             _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromMinutes(2);
-            Vestimenta.Detalhes vestimenta = new Vestimenta.Detalhes();
+            Iconografia.Detalhes vestimenta = new Iconografia.Detalhes();
 
             vestimenta.Titulo = _driver.FindElement(By.CssSelector("div.lado_lado.acervoBox.single > div.texto > div > h1")).Text.Trim();
             var paragraphs = _driver.FindElements(By.CssSelector("div.lado_lado.acervoBox.single > div.texto > div > p"));
@@ -107,7 +105,7 @@ namespace ScrappingMockVestimentas.Scrapper
             foreach (var imagem in imagens)
             {
                 vestimenta.CarrosselImagens.Add(imagem.GetAttribute("src"));
-            }            
+            }
             vestimenta.Ano = _driver.FindElement(By.CssSelector("div.lado_lado.acervoBox.single > div.item > div > p")).Text.Trim();
 
             var maisItens = _driver.FindElements(By.CssSelector(".cardHolder.slick-slide:not(.slick-cloned)"));
@@ -125,7 +123,7 @@ namespace ScrappingMockVestimentas.Scrapper
                         .ToString().Trim();
                 }
 
-                vestimenta.MaisItens.Add(new Vestimenta.Detalhes.Cards()
+                vestimenta.MaisItens.Add(new Iconografia.Detalhes.Cards()
                 {
                     Nome = nome,
                     Url = item.FindElement(By.TagName("a")).GetAttribute("href"),
