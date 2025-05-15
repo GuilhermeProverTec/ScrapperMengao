@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockIconografia", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockDiversos", "ScrappingMockDiversos\ScrappingMockDiversos.csproj", "{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrappingMockMusicas", "ScrappingMockMusicas\ScrappingMockMusicas.csproj", "{6C2BCAF9-02AB-43BE-AD3C-8F4AAF33BFED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4B70F8F-804D-41F1-8D7C-1E2B05D83B87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C2BCAF9-02AB-43BE-AD3C-8F4AAF33BFED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C2BCAF9-02AB-43BE-AD3C-8F4AAF33BFED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C2BCAF9-02AB-43BE-AD3C-8F4AAF33BFED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C2BCAF9-02AB-43BE-AD3C-8F4AAF33BFED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
